@@ -1,0 +1,5 @@
+description "SONiC platform service"
+
+respawn
+
+exec /usr/sbin/s9100_monitor.sh

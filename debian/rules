@@ -1,0 +1,62 @@
+#!/usr/bin/make -f
+# -*- makefile -*-
+# Sample debian/rules that uses debhelper.
+# This file was originally written by Joey Hess and Craig Small.
+# As a special exception, when this file is copied by dh-make into a
+# dh-make output file, you may use that output file without restriction.
+# This special exception was added by Craig Small in version 0.37 of dh-make.
+
+# Uncomment this to turn on verbose mode.
+#export DH_VERBOSE=1
+
+%:
+	dh $@ --with systemd
+
+clean:
+	dh_testdir
+	dh_testroot
+	dh_clean
+
+build:
+	# Nothing to do
+    
+binary: binary-arch binary-indep
+	# Nothing to do
+
+binary-arch: 
+	# Nothing to do
+
+#install: build
+	#dh_testdir
+	#dh_testroot
+	#dh_clean -k 
+	#dh_installdirs
+
+binary-indep:
+	dh_testdir
+	dh_installdirs
+
+	# Custom package commands
+	mkdir debian/tmp/usr/sbin -p
+	mkdir debian/tmp/lib/systemd/system -p
+	cp ./utils/i2c_utils.sh debian/sonic-platform-ingrasys-s9100/usr/sbin/
+	cp ./utils/s9100_monitor.sh debian/sonic-platform-ingrasys-s9100/usr/sbin/
+	cp ./service/s9100-monitor.service debian/sonic-platform-ingrasys-s9100/lib/systemd/system/
+
+	# Resuming debhelper scripts
+	dh_testroot
+	dh_install
+	dh_installchangelogs
+	dh_installdocs
+	dh_systemd_enable
+	dh_installinit
+	dh_systemd_start
+	dh_link
+	dh_fixperms
+	dh_compress
+	dh_strip
+	dh_installdeb
+	dh_gencontrol
+	dh_md5sums
+	dh_builddeb
+.PHONY: binary binary-arch binary-indep build clean
