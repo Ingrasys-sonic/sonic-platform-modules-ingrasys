@@ -1,4 +1,4 @@
-# Ingrasys S9100 Platform Driver for SONiC
+# Ingrasys S9100-32X Platform Driver for SONiC
 
 Copyright (C) 2016 Ingrasys, Inc.
 
@@ -34,7 +34,7 @@ Please see the LICENSE file for copies of both licenses.
 
 ## Kernel modules and drivers
 
-The driver for interacting with Ingrasys S9100 is contained in the I2C 
+The driver for interacting with Ingrasys S9100-32X is contained in the I2C 
 kernel module and initialization script. The initialization script loads 
 the modules in the correct order. It has been built and tested against
 the Linux 3.16 kernel. 
@@ -45,50 +45,47 @@ the kernel module.
 
 ### IGB
 
-The IGB module on the S9100 can be found in
-`/sys/bus/i2c/devices/i2c-0/`
-
 This is OOB Ports on front panel for management plane.
 
-The IGB module must be loaded first on Ingrasys S9100 platform.
+The IGB module must be loaded first on Ingrasys S9100-32X platform.
 
 ### I2C i801
 
-The I2C i801 on Ingrasys S9100 can be found in
-`/sys/bus/i2c/devices/i2c-1/`
+The I2C i801 on Ingrasys S9100-32X can be found in
+`/sys/bus/i2c/devices/i2c-0/`
 
 This is I2C bus for Clock Gen, DIMM channel and digital potentiometers. 
 
-The i801 module must be loaded second on Ingrasys S9100.
+The i801 module must be loaded second on Ingrasys S9100-32X.
 
 ### I2C iSMT
 
-The I2C iSMT module on S9100 can be found in
-`/sys/bus/i2c/devices/i2c-2/`
+The I2C iSMT module on S9100-32X can be found in
+`/sys/bus/i2c/devices/i2c-1/`
 
 This is I2C bus for CPLD, HWM, power controller and I2C Switches.
 
-The i801 module must be loaded third on Ingrasys S9100.
+The i801 module must be loaded third on Ingrasys S9100-32X.
 
 ### I2C PCA9548
-The PCA9548 module on S9100 can be found in
-`/sys/bus/i2c/devices/i2c-3/` , `/sys/bus/i2c/devices/i2c-4/`, 
-`/sys/bus/i2c/devices/i2c-5/`, `/sys/bus/i2c/devices/i2c-6/`,
-`/sys/bus/i2c/devices/i2c-7/`, `/sys/bus/i2c/devices/i2c-8/`,
-`/sys/bus/i2c/devices/i2c-9/`, `/sys/bus/i2c/devices/i2c-10/`.
+The PCA9548 module on S9100-32X can be found in
+`/sys/bus/i2c/devices/i2c-2/` , `/sys/bus/i2c/devices/i2c-3/`, 
+`/sys/bus/i2c/devices/i2c-4/`, `/sys/bus/i2c/devices/i2c-5/`,
+`/sys/bus/i2c/devices/i2c-6/`, `/sys/bus/i2c/devices/i2c-7/`,
+`/sys/bus/i2c/devices/i2c-8/`, `/sys/bus/i2c/devices/i2c-9/`.
 
 The pca9548 module for zQSFP module get/set functions, PSU information, 
 fan status and EEPROM.
 
 ## Hardware components
 
-The hardware components are initialized in the init script on S9100. 
+The hardware components are initialized in the init script on S9100-32X. 
 The following describes manual initialization as well as interaction.
-The examples below are just for Ingrasys S9100 platform.
+The examples below are just for Ingrasys S9100-32X platform.
 
 ### Hardware initialization
 
-When the sonic-platform-ingrasys-s9100 package is installed on the S9100,
+When the sonic-platform-ingrasys-s9100 package is installed on the S9100-32X,
 it is automatically initialized. If you want to manual initialization, the 
 utility command usage as follows:
 ```
@@ -104,8 +101,8 @@ After using `modprobe eeprom_mb` to detect the eeprom, it will show up in sysfs.
 The hexdump utility can be used to decode the raw output of the EEPROM. 
 For example,
 ```
-    bash# echo "mb_eeprom 0x54" > /sys/bus/i2c/devices/i2c-10/new_device
-    bash# cat /sys/bus/i2c/drivers/mb_eeprom/10-0054/eeprom | hexdump -C
+    bash# echo "mb_eeprom 0x54" > /sys/bus/i2c/devices/i2c-9/new_device
+    bash# cat /sys/bus/i2c/drivers/mb_eeprom/9-0054/eeprom | hexdump -C
 ```
 
 ### Front panel LEDs

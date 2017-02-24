@@ -1,7 +1,8 @@
 # Automatically added by dh_systemd_enable
 # This will only remove masks created by d-s-h on package removal.
 deb-systemd-helper unmask s9100-monitor.service >/dev/null || true
-
+# Generate kernel modules.dep and map files for add eeprom_mb.
+depmod -a
 # was-enabled defaults to true, so new installations run enable.
 if deb-systemd-helper --quiet was-enabled s9100-monitor.service; then
     # Enables the unit on first installation, creates new

@@ -9,6 +9,15 @@
 # Uncomment this to turn on verbose mode.
 #export DH_VERBOSE=1
 
+export INSTALL_MOD_DIR:=extra
+
+PACKAGE_NAME := sonic-platform-ingrasys-s9100
+KVERSION   ?= $(shell uname -r)
+KERNEL_SRC :=  /lib/modules/$(KVERSION)
+MODULE_SRC := $(shell pwd)/modules
+UTILS_SRC := $(shell pwd)/utils
+SERVICE_SRC := $(shell pwd)/service
+
 %:
 	dh $@ --with systemd
 
@@ -18,8 +27,8 @@ clean:
 	dh_clean
 
 build:
-	# Nothing to do
-    
+	make modules -C $(KERNEL_SRC)/build M=$(MODULE_SRC)
+
 binary: binary-arch binary-indep
 	# Nothing to do
 
@@ -39,9 +48,11 @@ binary-indep:
 	# Custom package commands
 	mkdir debian/tmp/usr/sbin -p
 	mkdir debian/tmp/lib/systemd/system -p
-	cp ./utils/i2c_utils.sh debian/sonic-platform-ingrasys-s9100/usr/sbin/
-	cp ./utils/s9100_monitor.sh debian/sonic-platform-ingrasys-s9100/usr/sbin/
-	cp ./service/s9100-monitor.service debian/sonic-platform-ingrasys-s9100/lib/systemd/system/
+	dh_installdirs -p$(PACKAGE_NAME) $(KERNEL_SRC)/$(INSTALL_MOD_DIR)
+	cp $(MODULE_SRC)/*.ko debian/$(PACKAGE_NAME)/$(KERNEL_SRC)/$(INSTALL_MOD_DIR)
+	cp $(UTILS_SRC)/i2c_utils.sh debian/$(PACKAGE_NAME)/usr/sbin/
+	cp $(UTILS_SRC)/s9100_monitor.sh debian/$(PACKAGE_NAME)/usr/sbin/
+	cp $(SERVICE_SRC)/s9100-monitor.service debian/$(PACKAGE_NAME)/lib/systemd/system/
 
 	# Resuming debhelper scripts
 	dh_testroot
@@ -59,4 +70,4 @@ binary-indep:
 	dh_gencontrol
 	dh_md5sums
 	dh_builddeb
-.PHONY: binary binary-arch binary-indep build clean
+.PHONY: build binary binary-arch binary-indep clean
