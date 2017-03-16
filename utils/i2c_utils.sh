@@ -499,25 +499,25 @@ function _i2c_qsfp_eeprom_get {
             i2cbus=${NUM_MUX1_CHAN4_DEVICE}
             regAddr=0x20
             dataAddr=0
-            eeprombusbase=11
+            eeprombusbase=${NUM_MUX3_CHAN0_DEVICE}
         ;;
         9|10|11|12|13|14|15|16)
             i2cbus=${NUM_MUX1_CHAN4_DEVICE}
             regAddr=0x20
             dataAddr=1
-            eeprombusbase=19
+            eeprombusbase=${NUM_MUX4_CHAN0_DEVICE}
         ;;
         17|18|19|20|21|22|23|24)
             i2cbus=${NUM_MUX1_CHAN4_DEVICE}
             regAddr=0x21
             dataAddr=0
-            eeprombusbase=27
+            eeprombusbase=${NUM_MUX5_CHAN0_DEVICE}
         ;;
         25|26|27|28|29|30|31|32)
             i2cbus=${NUM_MUX1_CHAN4_DEVICE}
             regAddr=0x21
             dataAddr=1
-            eeprombusbase=35
+            eeprombusbase=${NUM_MUX6_CHAN0_DEVICE}
         ;;
         33)
             i2cbus=${NUM_MUX1_CHAN7_DEVICE}

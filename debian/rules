@@ -17,6 +17,7 @@ KERNEL_SRC :=  /lib/modules/$(KVERSION)
 MODULE_SRC := $(shell pwd)/modules
 UTILS_SRC := $(shell pwd)/utils
 SERVICE_SRC := $(shell pwd)/service
+CONF_SRC := $(shell pwd)/conf
 
 %:
 	dh $@ --with systemd
@@ -48,11 +49,15 @@ binary-indep:
 	# Custom package commands
 	mkdir debian/tmp/usr/sbin -p
 	mkdir debian/tmp/lib/systemd/system -p
+	mkdir debian/tmp/etc -p
 	dh_installdirs -p$(PACKAGE_NAME) $(KERNEL_SRC)/$(INSTALL_MOD_DIR)
 	cp $(MODULE_SRC)/*.ko debian/$(PACKAGE_NAME)/$(KERNEL_SRC)/$(INSTALL_MOD_DIR)
 	cp $(UTILS_SRC)/i2c_utils.sh debian/$(PACKAGE_NAME)/usr/sbin/
 	cp $(UTILS_SRC)/s9100_monitor.sh debian/$(PACKAGE_NAME)/usr/sbin/
+	cp $(UTILS_SRC)/fancontrol debian/$(PACKAGE_NAME)/usr/sbin/
 	cp $(SERVICE_SRC)/s9100-monitor.service debian/$(PACKAGE_NAME)/lib/systemd/system/
+	cp $(SERVICE_SRC)/fancontrol.service debian/$(PACKAGE_NAME)/lib/systemd/system/
+	cp $(CONF_SRC)/fancontrol debian/$(PACKAGE_NAME)/etc/
 
 	# Resuming debhelper scripts
 	dh_testroot
