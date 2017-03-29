@@ -22,6 +22,7 @@ FALSE=404
 EXEC_FUNC=${1}
 COLOR_LED=${2}
 QSFP_PORT=${2}
+QSFP_ACTION=${2}
 ONOFF_LED=${3}
 
 ############################################################
@@ -91,6 +92,9 @@ function _help {
     echo "         : ${0} i2c_psu_eeprom_get"
     echo "         : ${0} i2c_mb_eeprom_get"
     echo "         : ${0} i2c_qsfp_eeprom_get [1-32]"
+    echo "         : ${0} i2c_qsfp_eeprom_init new|delete"
+    echo "         : ${0} i2c_qsfp_status_get [1-32]"
+    echo "         : ${0} i2c_qsfp_type_get [1-32]"
     echo "         : ${0} i2c_board_type_get"
     echo "         : ${0} i2c_psu_status"
     echo "         : ${0} i2c_led_psu_status_set"
@@ -113,6 +117,7 @@ function _pause {
 
 #Retry command function
 function _retry {
+    local i
     for i in {1..5};
     do
        eval "${*}" && break || echo "retry"; sleep 1;
@@ -176,6 +181,7 @@ function _i2c_init {
     modprobe eeprom_mb
     _i2c_fan_init
     _i2c_io_exp_init
+    _i2c_qsfp_eeprom_init "new"
     _i2c_led_psu_status_set
     _i2c_led_fan_status_set
     COLOR_LED="green"
@@ -190,10 +196,11 @@ function _i2c_init {
 
 #Temperature sensor Init
 function _i2c_temp_init {
+    echo -n "TEMP INIT..."
     i2cset -y -r ${NUM_I801_DEVICE} 0x2F 0x00 0x80
     i2cset -y -r ${NUM_I801_DEVICE} 0x2F 0x05 0x7F
     i2cset -y -r ${NUM_I801_DEVICE} 0x2F 0x04 0x0A
-    echo "TEMP INIT Done"
+    echo "Done"
 }
 
 #FAN Init
@@ -492,9 +499,10 @@ function _i2c_led_test {
     echo "done..."
 }
 
-#Get QSFP EEPROM Information
-function _i2c_qsfp_eeprom_get {
-    case ${QSFP_PORT} in
+#Set QSFP Port variable
+function _qsfp_port_i2c_var_set {
+    local port=$1
+    case ${port} in
         1|2|3|4|5|6|7|8)
             i2cbus=${NUM_MUX1_CHAN4_DEVICE}
             regAddr=0x20
@@ -531,23 +539,14 @@ function _i2c_qsfp_eeprom_get {
         ;;
         *) 
             echo "Please input 1~32"
-            exit
         ;;
     esac
+}
 
-    regData=`i2cget -y $i2cbus $regAddr $dataAddr`
-    presentChan=$(( (${QSFP_PORT} - 1) % 8 ))
-    presentChan=$(( $(($presentChan % 2)) == 1 ? $presentChan - 1 : $presentChan + 1 ))
-
-    #status: 0 -> Down, 1 -> Up
-    status=$(( $(($regData & ( 1 << $presentChan)))  != 0 ? 0 : 1 ))
-    echo $status
-
-    if [ $status = 0 ]; then
-        exit
-    fi
-
-    eeprombusidx=$(( ${QSFP_PORT} % 8))
+#Set QSFP Port variable
+function _qsfp_eeprom_var_set {
+    local port=$1
+    eeprombusidx=$(( ${port} % 8))
     case $eeprombusidx in
         1)
           eeprombus=$(( $eeprombusbase + 1 ))
@@ -582,14 +581,96 @@ function _i2c_qsfp_eeprom_get {
           eepromAddr=0x50
           ;;
     esac
-
-    echo "eeprom $eepromAddr" > ${PATH_SYS_I2C_DEVICES}/i2c-$eeprombus/new_device
-    sleep 1
-    cat ${PATH_SYS_I2C_DEVICES}/$eeprombus-$(printf "%04x" $eepromAddr)/eeprom | hexdump -C
-    sleep 1
-    echo "$eepromAddr" > ${PATH_SYS_I2C_DEVICES}/i2c-$eeprombus/delete_device
-
 }
+
+#Get QSFP EEPROM Information
+function _i2c_qsfp_eeprom_get {
+
+    _qsfp_port_i2c_var_set ${QSFP_PORT}
+
+    regData=`i2cget -y $i2cbus $regAddr $dataAddr`
+    presentChan=$(( (${QSFP_PORT} - 1) % 8 ))
+    presentChan=$(( $(($presentChan % 2)) == 1 ? $presentChan - 1 : $presentChan + 1 ))
+
+    #status: 0 -> Down, 1 -> Up
+    status=$(( $(($regData & ( 1 << $presentChan)))  != 0 ? 0 : 1 ))
+    echo $status
+
+    if [ $status = 0 ]; then
+        exit
+    fi
+
+    _qsfp_eeprom_var_set ${QSFP_PORT}
+
+    cat ${PATH_SYS_I2C_DEVICES}/$eeprombus-$(printf "%04x" $eepromAddr)/eeprom | hexdump -C
+}
+
+#Init QSFP EEPROM
+function _i2c_qsfp_eeprom_init {
+    echo -n "QSFP EEPROM INIT..."
+    
+    #Action check
+    action=$1
+    if [ -z "${action}" ]; then
+        echo "No action, skip"
+        return
+    elif [ "${action}" != "new" ] && [ "${action}" != "delete" ]; then
+        echo "Error action, skip"
+        return
+    fi
+    
+    #Init 1-32 ports EEPROM
+    local i
+    for i in {1..32};
+    do
+        _qsfp_port_i2c_var_set ${i}
+
+        _qsfp_eeprom_var_set ${i}
+
+        if [ "${action}" == "new" ] && \
+           ! [ -L ${PATH_SYS_I2C_DEVICES}/$eeprombus-$(printf "%04x" $eepromAddr) ]; then
+            echo "sff8436 $eepromAddr" > ${PATH_SYS_I2C_DEVICES}/i2c-$eeprombus/new_device
+        elif [ "${action}" == "delete" ] && \
+             [ -L ${PATH_SYS_I2C_DEVICES}/$eeprombus-$(printf "%04x" $eepromAddr) ]; then
+            echo "$eepromAddr" > ${PATH_SYS_I2C_DEVICES}/i2c-$eeprombus/delete_device
+        fi
+    done
+    echo "DONE"
+}
+
+#get QSFP Status
+function _i2c_qsfp_status_get {
+
+    _qsfp_port_i2c_var_set ${QSFP_PORT}
+
+    regData=`i2cget -y $i2cbus $regAddr $dataAddr`
+    presentChan=$(( (${QSFP_PORT} - 1) % 8 ))
+    presentChan=$(( $(($presentChan % 2)) == 1 ? $presentChan - 1 : $presentChan + 1 ))
+
+    #status: 0 -> Down, 1 -> Up
+    status=$(( $(($regData & ( 1 << $presentChan)))  != 0 ? 0 : 1 ))
+    echo "status=$status"
+}
+
+#get QSFP Type
+function _i2c_qsfp_type_get {
+
+    _qsfp_port_i2c_var_set ${QSFP_PORT}
+
+    _qsfp_eeprom_var_set ${QSFP_PORT}
+
+    #Get QSFP EEPROM info
+    qsfp_info=$(base64 ${PATH_SYS_I2C_DEVICES}/$eeprombus-$(printf "%04x" $eepromAddr)/eeprom)
+
+    identifier=$(echo $qsfp_info | base64 -d -i | hexdump -s 128 -n 1 -e '"%x"')
+    connector=$(echo $qsfp_info | base64 -d -i | hexdump -s 130 -n 1 -e '"%x"')
+    transceiver=$(echo $qsfp_info | base64 -d -i | hexdump -s 131 -n 1 -e '"%x"')
+
+    echo "identifier=$identifier"
+    echo "connector=$connector"
+    echo "transceiver=$transceiver"
+}
+
 
 #Get PSU EEPROM Information
 function _i2c_psu_eeprom_get {
@@ -804,6 +885,12 @@ function _main {
         _i2c_psu_eeprom_get
     elif [ "${EXEC_FUNC}" == "i2c_qsfp_eeprom_get" ]; then
         _i2c_qsfp_eeprom_get
+    elif [ "${EXEC_FUNC}" == "i2c_qsfp_eeprom_init" ]; then
+        _i2c_qsfp_eeprom_init ${QSFP_ACTION}
+    elif [ "${EXEC_FUNC}" == "i2c_qsfp_status_get" ]; then
+        _i2c_qsfp_status_get
+    elif [ "${EXEC_FUNC}" == "i2c_qsfp_type_get" ]; then
+        _i2c_qsfp_type_get
     elif [ "${EXEC_FUNC}" == "i2c_led_psu_status_set" ]; then
         _i2c_led_psu_status_set
     elif [ "${EXEC_FUNC}" == "i2c_led_fan_status_set" ]; then

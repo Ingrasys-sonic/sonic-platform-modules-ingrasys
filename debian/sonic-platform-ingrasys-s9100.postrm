@@ -7,6 +7,7 @@ if [ -d /run/systemd/system ]; then
 if [ "$1" = "purge" ] ; then
     update-rc.d s9100-monitor remove >/dev/null
     update-rc.d fancontrol remove >/dev/null
+    update-rc.d qsfp-monitor remove >/dev/null
 fi
 
 
@@ -21,6 +22,7 @@ if [ "$1" = "remove" ]; then
     if [ -x "/usr/bin/deb-systemd-helper" ]; then
         deb-systemd-helper mask s9100-monitor.service >/dev/null
         deb-systemd-helper mask fancontrol.service >/dev/null
+        deb-systemd-helper mask qsfp-monitor.service >/dev/null
     fi
 fi
 
@@ -30,6 +32,8 @@ if [ "$1" = "purge" ]; then
         deb-systemd-helper unmask s9100-monitor.service >/dev/null
         deb-systemd-helper purge fancontrol.service >/dev/null
         deb-systemd-helper unmask fancontrol.service >/dev/null
+        deb-systemd-helper purge qsfp-monitor.service >/dev/null
+        deb-systemd-helper unmask qsfp-monitor.service >/dev/null
     fi
 fi
 # End automatically added section

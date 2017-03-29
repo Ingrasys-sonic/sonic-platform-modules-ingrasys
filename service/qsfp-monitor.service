@@ -1,0 +1,15 @@
+[Unit]
+Description= This QSFP Monitor service is to setup QSFP SI.
+After=s9100-monitor.service
+DefaultDependencies=no
+
+[Service]
+ExecStart=/usr/sbin/qsfp_monitor.sh
+KillSignal=SIGKILL
+SuccessExitStatus=SIGKILL
+
+# Resource Limitations
+LimitCORE=infinity
+
+[Install]
+WantedBy=multi-user.target

@@ -54,9 +54,12 @@ binary-indep:
 	cp $(MODULE_SRC)/*.ko debian/$(PACKAGE_NAME)/$(KERNEL_SRC)/$(INSTALL_MOD_DIR)
 	cp $(UTILS_SRC)/i2c_utils.sh debian/$(PACKAGE_NAME)/usr/sbin/
 	cp $(UTILS_SRC)/s9100_monitor.sh debian/$(PACKAGE_NAME)/usr/sbin/
+	cp $(UTILS_SRC)/qsfp_monitor.sh debian/$(PACKAGE_NAME)/usr/sbin/
+	cp $(UTILS_SRC)/qsfp_si_cfg.sh debian/$(PACKAGE_NAME)/usr/sbin/
 	cp $(UTILS_SRC)/fancontrol debian/$(PACKAGE_NAME)/usr/sbin/
 	cp $(SERVICE_SRC)/s9100-monitor.service debian/$(PACKAGE_NAME)/lib/systemd/system/
 	cp $(SERVICE_SRC)/fancontrol.service debian/$(PACKAGE_NAME)/lib/systemd/system/
+	cp $(SERVICE_SRC)/qsfp-monitor.service debian/$(PACKAGE_NAME)/lib/systemd/system/
 	cp $(CONF_SRC)/fancontrol debian/$(PACKAGE_NAME)/etc/
 
 	# Resuming debhelper scripts
