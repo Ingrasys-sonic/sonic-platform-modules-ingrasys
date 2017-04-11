@@ -7,5 +7,12 @@ Standards-Version: 1.0.0
 
 Package: sonic-platform-ingrasys-s9100
 Architecture: amd64 
-Description: This package contains platform driver utility for SONiC project.
+Description: This package contains S9100 platform driver utility for SONiC project.
 
+Package: sonic-platform-ingrasys-s8900-64xc
+Architecture: amd64 
+Description: This package contains S8900-64XC platform driver utility for SONiC project.
+
+Package: sonic-platform-ingrasys-s8900-54xc
+Architecture: amd64 
+Description: This package contains S8900-54XC platform driver utility for SONiC project.

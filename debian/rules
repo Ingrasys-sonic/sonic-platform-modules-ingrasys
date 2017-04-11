@@ -11,13 +11,15 @@
 
 export INSTALL_MOD_DIR:=extra
 
-PACKAGE_NAME := sonic-platform-ingrasys-s9100
+PACKAGE_PRE_NAME := sonic-platform-ingrasys
 KVERSION   ?= $(shell uname -r)
 KERNEL_SRC :=  /lib/modules/$(KVERSION)
-MODULE_SRC := $(shell pwd)/modules
-UTILS_SRC := $(shell pwd)/utils
-SERVICE_SRC := $(shell pwd)/service
-CONF_SRC := $(shell pwd)/conf
+MOD_SRC_DIR:= $(shell pwd)
+MODULE_DIRS:= s9100	 s8900-64xc s8900-54xc
+MODULE_DIR := modules
+UTILS_DIR := utils
+SERVICE_DIR := service
+CONF_DIR := conf
 
 %:
 	dh $@ --with systemd
@@ -28,7 +30,10 @@ clean:
 	dh_clean
 
 build:
-	make modules -C $(KERNEL_SRC)/build M=$(MODULE_SRC)
+	#make modules -C $(KERNEL_SRC)/build M=$(MODULE_SRC)
+	(for mod in $(MODULE_DIRS); do \
+		make modules -C $(KERNEL_SRC)/build M=$(MOD_SRC_DIR)/$${mod}/modules; \
+	done)
 
 binary: binary-arch binary-indep
 	# Nothing to do
@@ -47,21 +52,17 @@ binary-indep:
 	dh_installdirs
 
 	# Custom package commands
-	mkdir debian/tmp/usr/sbin -p
-	mkdir debian/tmp/lib/systemd/system -p
-	mkdir debian/tmp/etc -p
-	dh_installdirs -p$(PACKAGE_NAME) $(KERNEL_SRC)/$(INSTALL_MOD_DIR)
-	cp $(MODULE_SRC)/*.ko debian/$(PACKAGE_NAME)/$(KERNEL_SRC)/$(INSTALL_MOD_DIR)
-	cp $(UTILS_SRC)/i2c_utils.sh debian/$(PACKAGE_NAME)/usr/sbin/
-	cp $(UTILS_SRC)/s9100_monitor.sh debian/$(PACKAGE_NAME)/usr/sbin/
-	cp $(UTILS_SRC)/qsfp_monitor.sh debian/$(PACKAGE_NAME)/usr/sbin/
-	cp $(UTILS_SRC)/qsfp_si_cfg.sh debian/$(PACKAGE_NAME)/usr/sbin/
-	cp $(UTILS_SRC)/fancontrol debian/$(PACKAGE_NAME)/usr/sbin/
-	cp $(SERVICE_SRC)/s9100-monitor.service debian/$(PACKAGE_NAME)/lib/systemd/system/
-	cp $(SERVICE_SRC)/fancontrol.service debian/$(PACKAGE_NAME)/lib/systemd/system/
-	cp $(SERVICE_SRC)/qsfp-monitor.service debian/$(PACKAGE_NAME)/lib/systemd/system/
-	cp $(CONF_SRC)/fancontrol debian/$(PACKAGE_NAME)/etc/
-
+	(for mod in $(MODULE_DIRS); do \
+		mkdir debian/tmp/usr/sbin -p; \
+		mkdir debian/tmp/lib/systemd/system -p; \
+		mkdir debian/tmp/etc -p; \
+		dh_installdirs -p$(PACKAGE_PRE_NAME)-$${mod} $(KERNEL_SRC)/$(INSTALL_MOD_DIR); \
+		cp $(MOD_SRC_DIR)/$${mod}/$(MODULE_DIR)/*.ko debian/$(PACKAGE_PRE_NAME)-$${mod}/$(KERNEL_SRC)/$(INSTALL_MOD_DIR); \
+		cp $(MOD_SRC_DIR)/$${mod}/$(UTILS_DIR)/*.sh debian/$(PACKAGE_PRE_NAME)-$${mod}/usr/sbin/; \
+		cp $(MOD_SRC_DIR)/$${mod}/$(UTILS_DIR)/fancontrol debian/$(PACKAGE_PRE_NAME)-$${mod}/usr/sbin/; \
+		cp $(MOD_SRC_DIR)/$${mod}/$(SERVICE_DIR)/*.service debian/$(PACKAGE_PRE_NAME)-$${mod}/lib/systemd/system/; \
+		cp $(MOD_SRC_DIR)/$${mod}/$(CONF_DIR)/fancontrol debian/$(PACKAGE_PRE_NAME)-$${mod}/etc/; \
+	done)
 	# Resuming debhelper scripts
 	dh_testroot
 	dh_install
