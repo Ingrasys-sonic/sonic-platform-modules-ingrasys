@@ -23,6 +23,7 @@ EXEC_FUNC=${1}
 COLOR_LED=${2}
 QSFP_PORT=${2}
 QSFP_ACTION=${2}
+MB_EEPROM_ACTION=${2}
 ONOFF_LED=${3}
 
 ############################################################
@@ -93,6 +94,7 @@ function _help {
     echo "         : ${0} i2c_mb_eeprom_get"
     echo "         : ${0} i2c_qsfp_eeprom_get [1-32]"
     echo "         : ${0} i2c_qsfp_eeprom_init new|delete"
+    echo "         : ${0} i2c_mb_eeprom_init new|delete"
     echo "         : ${0} i2c_qsfp_status_get [1-32]"
     echo "         : ${0} i2c_qsfp_type_get [1-32]"
     echo "         : ${0} i2c_board_type_get"
@@ -182,6 +184,7 @@ function _i2c_init {
     _i2c_fan_init
     _i2c_io_exp_init
     _i2c_qsfp_eeprom_init "new"
+    _i2c_mb_eeprom_init "new"
     _i2c_led_psu_status_set
     _i2c_led_fan_status_set
     COLOR_LED="green"
@@ -638,6 +641,31 @@ function _i2c_qsfp_eeprom_init {
     echo "DONE"
 }
 
+#Init Main Board EEPROM
+function _i2c_mb_eeprom_init {
+    echo -n "Main Board EEPROM INIT..."
+    
+    #Action check
+    action=$1
+    if [ -z "${action}" ]; then
+        echo "No action, skip"
+        return
+    elif [ "${action}" != "new" ] && [ "${action}" != "delete" ]; then
+        echo "Error action, skip"
+        return
+    fi
+    
+    #Init 1-32 ports EEPROM
+    if [ "${action}" == "new" ] && \
+           ! [ -L ${PATH_SYS_I2C_DEVICES}/${NUM_MUX1_CHAN7_DEVICE}-0054 ]; then
+        echo "mb_eeprom 0x54" > ${PATH_SYS_I2C_DEVICES}/i2c-${NUM_MUX1_CHAN7_DEVICE}/new_device
+    elif [ "${action}" == "delete" ] && \
+           [ -L ${PATH_SYS_I2C_DEVICES}/${NUM_MUX1_CHAN7_DEVICE}-0054 ]; then
+        echo "0x54" > ${PATH_SYS_I2C_DEVICES}/i2c-${NUM_MUX1_CHAN7_DEVICE}/delete_device
+    fi
+    echo "DONE"
+}
+
 #get QSFP Status
 function _i2c_qsfp_status_get {
 
@@ -699,13 +727,8 @@ function _i2c_mb_eeprom_get {
     echo "# Description: I2C MB EEPROM Get..."
     echo "========================================================="
 
-    ## modprobe eeprom
-    modprobe eeprom_mb
-
     ## MB EEPROM
-    echo "mb_eeprom 0x54" > ${PATH_SYS_I2C_DEVICES}/i2c-${NUM_MUX1_CHAN7_DEVICE}/new_device
-    dd if=${PATH_SYS_I2C_DEVICES}/${NUM_MUX1_CHAN7_DEVICE}-0054/eeprom  of=mb.rom
-    echo "0x54" > ${PATH_SYS_I2C_DEVICES}/i2c-${NUM_MUX1_CHAN7_DEVICE}/delete_device
+    cat ${PATH_SYS_I2C_DEVICES}/${NUM_MUX1_CHAN7_DEVICE}-0054/eeprom | hexdump -C
     echo "done..."
 }
 
@@ -887,6 +910,8 @@ function _main {
         _i2c_qsfp_eeprom_get
     elif [ "${EXEC_FUNC}" == "i2c_qsfp_eeprom_init" ]; then
         _i2c_qsfp_eeprom_init ${QSFP_ACTION}
+    elif [ "${EXEC_FUNC}" == "i2c_mb_eeprom_init" ]; then
+        _i2c_mb_eeprom_init ${MB_EEPROM_ACTION}
     elif [ "${EXEC_FUNC}" == "i2c_qsfp_status_get" ]; then
         _i2c_qsfp_status_get
     elif [ "${EXEC_FUNC}" == "i2c_qsfp_type_get" ]; then
