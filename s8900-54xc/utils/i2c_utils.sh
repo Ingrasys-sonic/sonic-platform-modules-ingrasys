@@ -488,7 +488,7 @@ function _i2c_mount_sfp_eeprom {
     eeprombus=${SFP_EEPROM_BUS_IDX}
     eepromAddr=0x50
     echo "sff8436 $eepromAddr" > /sys/bus/i2c/devices/i2c-$eeprombus/new_device
-    cho "Mount Port $1 EEPROM"
+    echo "Mount Port $1 EEPROM"
 }
 
 #Unmount SFP/QSFP EEPROM 
