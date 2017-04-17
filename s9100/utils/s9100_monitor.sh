@@ -22,6 +22,7 @@ I2C_UTILS="/usr/sbin/i2c_utils.sh"
 function _led_monitor {
     ${I2C_UTILS} i2c_led_fan_status_set >/dev/null
     ${I2C_UTILS} i2c_led_psu_status_set >/dev/null
+    ${I2C_UTILS} i2c_led_fan_tray_status_set >/dev/null
 }
 
 # main function
