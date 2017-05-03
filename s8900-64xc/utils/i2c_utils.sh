@@ -84,6 +84,7 @@ function _help {
     echo "         : ${0} i2c_fan_init"
     echo "         : ${0} i2c_volmon_init"
     echo "         : ${0} i2c_io_exp_init"
+    echo "         : ${0} i2c_gpio_init"
     echo "         : ${0} i2c_led_test"
     echo "         : ${0} i2c_psu_eeprom_get"
     echo "         : ${0} i2c_mb_eeprom_get"
@@ -118,19 +119,6 @@ function _retry {
     done
 }
 
-#Docker exist check
-function _register_front_port_led_ctl_cb {
-    while true
-    do
-        # Check if syncd starts
-        result=`docker exec -i swss bash -c "echo -en \"SELECT 1\\nHLEN HIDDEN\" | redis-cli | sed -n 2p"`
-        if [ "$result" == "3" ]; then
-            docker exec -i syncd bcmcmd "cint /usr/share/sonic/hwsku/front_port_led.ctrl"
-            return
-        fi
-        sleep 1
-    done
-}
 
 #I2C Init
 function _i2c_init {
@@ -143,6 +131,7 @@ function _i2c_init {
     modprobe i2c_i801
     modprobe i2c_ismt
     modprobe i2c_dev
+    modprobe i2c_mux_pca954x force_deselect_on_exit=1
 
     if [ ! -e "${PATH_SYS_I2C_DEVICES}/i2c-${NUM_MUX1_CHAN0_DEVICE}" ]; then
         _retry "echo 'pca9548 0x72' > ${PATH_ISMT_DEVICE}/new_device"
@@ -168,6 +157,7 @@ function _i2c_init {
     modprobe eeprom_mb
     _i2c_fan_init
     _i2c_io_exp_init
+    _i2c_gpio_init
     _i2c_led_psu_status_set
     _i2c_led_fan_status_set
     COLOR_LED="green"
@@ -187,14 +177,11 @@ function _i2c_init {
     echo "sff8436 0x50" > /sys/bus/i2c/devices/i2c-2/new_device
     echo "sff8436 0x50" > /sys/bus/i2c/devices/i2c-3/new_device
     echo "sff8436 0x50" > /sys/bus/i2c/devices/i2c-4/new_device
+}
 
-    #FIXME: portstat arch will be re-org in github: BEGIN
-    platform_path="/usr/share/sonic/device/x86_64-ingrasys_s8900_64xc-r0"
-    if [ -e "${platform_path}/plugins/portstat" ]; then
-        cp -f ${platform_path}/plugins/portstat /usr/bin/portstat
-    fi
-    #FIXME: portstat arch will be re-org in github: END
-    _register_front_port_led_ctl_cb
+#I2C Deinit
+function _i2c_deinit {
+    echo "TBD: Platform deinitialization not ready."
 }
 
 #Temperature sensor Init
@@ -286,6 +273,10 @@ function _i2c_io_exp_init {
     i2cset -y -r ${NUM_MUX1_CHAN3_DEVICE} 0x21 7 0xFF
 }
 
+#GPIO Init
+function _i2c_gpio_init {
+    echo "TBD: QSFP transceivers not ready."
+}
 #Set FAN Tray LED
 function _i2c_led_fan_tray_status_set {
     echo "FAN Tray Status Setup"
@@ -733,10 +724,7 @@ function _i2c_mb_eeprom_get {
     modprobe eeprom_mb
 
     ## MB EEPROM
-    echo "mb_eeprom 0x54" > ${PATH_SYS_I2C_DEVICES}/i2c-${NUM_MUX1_CHAN5_DEVICE}/new_device
-    dd if=${PATH_SYS_I2C_DEVICES}/${NUM_MUX1_CHAN5_DEVICE}-0054/eeprom  of=mb.rom
-    echo "0x54" > ${PATH_SYS_I2C_DEVICES}/i2c-${NUM_MUX1_CHAN5_DEVICE}/delete_device
-    cat mb.rom | hexdump -C
+    cat ${PATH_SYS_I2C_DEVICES}/${NUM_MUX1_CHAN5_DEVICE}-0054/eeprom | hexdump -C
     echo "done..."
 }
 
@@ -972,6 +960,8 @@ function _main {
         _help
     elif [ "${EXEC_FUNC}" == "i2c_init" ]; then
         _i2c_init
+    elif [ "${EXEC_FUNC}" == "i2c_deinit" ]; then
+        _i2c_deinit
     elif [ "${EXEC_FUNC}" == "i2c_temp_init" ]; then
         _i2c_temp_init
     elif [ "${EXEC_FUNC}" == "i2c_fan_init" ]; then
@@ -980,6 +970,8 @@ function _main {
         _i2c_volmon_init
     elif [ "${EXEC_FUNC}" == "i2c_io_exp_init" ]; then
         _i2c_io_exp_init
+    elif [ "${EXEC_FUNC}" == "i2c_gpio_init" ]; then
+        _i2c_gpio_init
     elif [ "${EXEC_FUNC}" == "i2c_led_test" ]; then
         _i2c_led_test
     elif [ "${EXEC_FUNC}" == "i2c_mb_eeprom_get" ]; then

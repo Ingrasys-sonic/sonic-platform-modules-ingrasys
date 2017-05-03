@@ -40,14 +40,6 @@ function _qsfp_type_check {
     if [ "${identifier}" == "11" ]; then
         connector=`echo "$qsfp_type" | grep '^connector=.*$' | sed -e 's/connector=//g'`
         case ${connector} in
-            7|b|c|22)
-                #Optical
-                if [ "${QSFP_ARRAY[$port]}" != "${connector}" ]; then
-                    echo "Change Port $(expr $port + 1) to Optical"
-                    QSFP_ARRAY[$port]=${connector}
-                    ${QSFP_SI_SCRIPT} optical $port >/dev/null
-                fi
-            ;;
             21|23)
                 #DAC
                 if [ "${QSFP_ARRAY[$port]}" != "${connector}" ]; then
@@ -57,8 +49,12 @@ function _qsfp_type_check {
                 fi
             ;;
             *) 
-                echo "Unknown connector type"
-                return
+                #Optical
+                if [ "${QSFP_ARRAY[$port]}" != "${connector}" ]; then
+                    echo "Change Port $(expr $port + 1) to Optical"
+                    QSFP_ARRAY[$port]=${connector}
+                    ${QSFP_SI_SCRIPT} optical $port >/dev/null
+                fi
             ;;
         esac
     fi

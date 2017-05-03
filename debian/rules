@@ -61,7 +61,6 @@ binary-indep:
 		cp $(MOD_SRC_DIR)/$${mod}/$(UTILS_DIR)/*.sh debian/$(PACKAGE_PRE_NAME)-$${mod}/usr/sbin/; \
 		cp $(MOD_SRC_DIR)/$${mod}/$(UTILS_DIR)/fancontrol debian/$(PACKAGE_PRE_NAME)-$${mod}/usr/sbin/; \
 		cp $(MOD_SRC_DIR)/$${mod}/$(SERVICE_DIR)/*.service debian/$(PACKAGE_PRE_NAME)-$${mod}/lib/systemd/system/; \
-		cp $(MOD_SRC_DIR)/$${mod}/$(CONF_DIR)/fancontrol debian/$(PACKAGE_PRE_NAME)-$${mod}/etc/; \
 	done)
 	# Resuming debhelper scripts
 	dh_testroot
