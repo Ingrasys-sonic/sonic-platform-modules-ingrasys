@@ -84,11 +84,15 @@ function _help {
     echo "         : ${0} i2c_fan_init"
     echo "         : ${0} i2c_volmon_init"
     echo "         : ${0} i2c_io_exp_init"
-    echo "         : ${0} i2c_gpio_init"
     echo "         : ${0} i2c_led_test"
     echo "         : ${0} i2c_psu_eeprom_get"
     echo "         : ${0} i2c_mb_eeprom_get"
     echo "         : ${0} i2c_qsfp_eeprom_get [1-64]"
+    echo "         : ${0} i2c_qsfp_abs_get [1-64]"
+    echo "         : ${0} i2c_qsfp_rst_get [49-64]"
+    echo "         : ${0} i2c_qsfp_int_get [49-64]"
+    echo "         : ${0} i2c_qsfp_lpmode_get [49-64]"
+    echo "         : ${0} i2c_qsfp_modsel_get [49-64]"
     echo "         : ${0} i2c_board_type_get"
     echo "         : ${0} i2c_psu_status"
     echo "         : ${0} i2c_led_psu_status_set"
@@ -157,7 +161,6 @@ function _i2c_init {
     modprobe eeprom_mb
     _i2c_fan_init
     _i2c_io_exp_init
-    _i2c_gpio_init
     _i2c_led_psu_status_set
     _i2c_led_fan_status_set
     COLOR_LED="green"
@@ -273,10 +276,6 @@ function _i2c_io_exp_init {
     i2cset -y -r ${NUM_MUX1_CHAN3_DEVICE} 0x21 7 0xFF
 }
 
-#GPIO Init
-function _i2c_gpio_init {
-    echo "TBD: QSFP transceivers not ready."
-}
 #Set FAN Tray LED
 function _i2c_led_fan_tray_status_set {
     echo "FAN Tray Status Setup"
@@ -558,107 +557,122 @@ function _i2c_led_test {
     echo "done..."
 }
 
-#Get SFP/QSFP EEPROM Information
-function _i2c_qsfp_eeprom_get {
-    case ${QSFP_PORT} in
+#Set QSFP Port variable
+function _qsfp_port_i2c_var_set {
+    local port=$1
+    case ${port} in
         1|2|3|4|5|6|7|8)
             i2cbus=${NUM_MUX1_CHAN0_DEVICE}
             regAddr=0x33
-            idx=$(( ((${QSFP_PORT} - 1) / 2) ))
+            idx=$(( ((${port} - 1) / 2) ))
             dataAddr=$(( (32 + $idx) ))
-            presentChan=$(( $((${QSFP_PORT} % 2)) == 1 ? 0x1 : 0x5 ))
+            presentChan=$(( $((${port} % 2)) == 1 ? 0x1 : 0x5 ))
             eeprombus=${NUM_MUX1_CHAN0_DEVICE}
-            eepromidx=${QSFP_PORT}
+            eepromidx=${port}
             eepromAddr=0x50
         ;;
         9|10|11|12|13|14|15|16)
             i2cbus=${NUM_MUX1_CHAN0_DEVICE}
             regAddr=0x33
-            idx=$(( ((${QSFP_PORT} - 1) / 2) ))
+            idx=$(( ((${port} - 1) / 2) ))
             dataAddr=$(( (32 + $idx) ))
-            presentChan=$(( $((${QSFP_PORT} % 2)) == 1 ? 0x1 : 0x5 ))
+            presentChan=$(( $((${port} % 2)) == 1 ? 0x1 : 0x5 ))
             eeprombus=${NUM_MUX1_CHAN0_DEVICE}
-            eepromidx=${QSFP_PORT}
+            eepromidx=${port}
             eepromAddr=0x50
         ;;
         17|18|19|20)
             i2cbus=${NUM_MUX1_CHAN0_DEVICE}
             regAddr=0x33
-            idx=$(( ((${QSFP_PORT} - 1) / 2) ))
+            idx=$(( ((${port} - 1) / 2) ))
             dataAddr=$(( (32 + $idx) ))
-            presentChan=$(( $((${QSFP_PORT} % 2)) == 1 ? 0x1 : 0x5 ))
+            presentChan=$(( $((${port} % 2)) == 1 ? 0x1 : 0x5 ))
             eeprombus=${NUM_MUX1_CHAN0_DEVICE}
-            eepromidx=${QSFP_PORT}
+            eepromidx=${port}
             eepromAddr=0x50
         ;;
         21|22|23|24)
             i2cbus=${NUM_MUX1_CHAN0_DEVICE}
             regAddr=0x33
-            idx=$(( ((${QSFP_PORT} - 1) / 2) ))
+            idx=$(( ((${port} - 1) / 2) ))
             dataAddr=$(( (38 + $idx) ))
-            presentChan=$(( $((${QSFP_PORT} % 2)) == 1 ? 0x1 : 0x5 ))
+            presentChan=$(( $((${port} % 2)) == 1 ? 0x1 : 0x5 ))
             eeprombus=${NUM_MUX1_CHAN0_DEVICE}
-            eepromidx=${QSFP_PORT}
+            eepromidx=${port}
             eepromAddr=0x50
         ;;
         25|26|27|28|29|30|31|32)
             i2cbus=${NUM_MUX1_CHAN1_DEVICE}
             regAddr=0x33
-            idx=$(( ((${QSFP_PORT} - 25) / 2) ))
+            idx=$(( ((${port} - 25) / 2) ))
             dataAddr=$(( (32 + $idx) ))
-            presentChan=$(( $((${QSFP_PORT} % 2)) == 1 ? 0x1 : 0x5 ))
+            presentChan=$(( $((${port} % 2)) == 1 ? 0x1 : 0x5 ))
             eeprombus=${NUM_MUX1_CHAN1_DEVICE}
-            eepromidx=$(( (${QSFP_PORT} - 24) ))
+            eepromidx=$(( (${port} - 24) ))
             eepromAddr=0x50
         ;;
         33|34|35|36|37|38|39|40)
             i2cbus=${NUM_MUX1_CHAN1_DEVICE}
             regAddr=0x33
-            idx=$(( ((${QSFP_PORT} - 25) / 2) ))
+            idx=$(( ((${port} - 25) / 2) ))
             dataAddr=$(( (32 + $idx) ))
-            presentChan=$(( $((${QSFP_PORT} % 2)) == 1 ? 0x1 : 0x5 ))
+            presentChan=$(( $((${port} % 2)) == 1 ? 0x1 : 0x5 ))
             eeprombus=${NUM_MUX1_CHAN1_DEVICE}
-            eepromidx=$(( (${QSFP_PORT} - 24) ))
+            eepromidx=$(( (${port} - 24) ))
             eepromAddr=0x50
         ;;
         41|42|43|44)
             i2cbus=${NUM_MUX1_CHAN1_DEVICE}
             regAddr=0x33
-            idx=$(( ((${QSFP_PORT} - 25) / 2) ))
+            idx=$(( ((${port} - 25) / 2) ))
             dataAddr=$(( (32 + $idx) ))
-            presentChan=$(( $((${QSFP_PORT} % 2)) == 1 ? 0x1 : 0x5 ))
+            presentChan=$(( $((${port} % 2)) == 1 ? 0x1 : 0x5 ))
             eeprombus=${NUM_MUX1_CHAN1_DEVICE}
-            eepromidx=$(( (${QSFP_PORT} - 24) ))
+            eepromidx=$(( (${port} - 24) ))
             eepromAddr=0x50
         ;;
         45|46|47|48)
             i2cbus=${NUM_MUX1_CHAN1_DEVICE}
             regAddr=0x33
-            idx=$(( ((${QSFP_PORT} - 25) / 2) ))
+            idx=$(( ((${port} - 25) / 2) ))
             dataAddr=$(( (38 + $idx) ))
-            presentChan=$(( $((${QSFP_PORT} % 2)) == 1 ? 0x1 : 0x5 ))
+            presentChan=$(( $((${port} % 2)) == 1 ? 0x1 : 0x5 ))
             eeprombus=${NUM_MUX1_CHAN1_DEVICE}
-            eepromidx=$(( (${QSFP_PORT} - 24) ))
+            eepromidx=$(( (${port} - 24) ))
             eepromAddr=0x50
         ;;
         49|50|51|52|53|54|55|56)
             i2cbus=${NUM_MUX1_CHAN2_DEVICE}
             regAddr=0x33
-            idx=$(( (${QSFP_PORT} - 49) ))
+            idx=$(( (${port} - 49) ))
             dataAddr=$(( (32 + $idx) ))
+            rstsellpdataAddr=$(( (48 + $idx) ))
+            intChan=0x0
+            rstChan=0x0
             presentChan=0x1
+            modselChan=0x1
+            lpmodeChan=0x2
             eeprombus=${NUM_MUX1_CHAN2_DEVICE}
-            eepromidx=$(( (${QSFP_PORT} - 48) ))
+            eepromidx=$(( (${port} - 48) ))
+            intabsidx=$(( (${port} - 28) ))
+            rstsellpidx=$(( (${port} - 18) ))
             eepromAddr=0x50
         ;;
         57|58|59|60|61|62|63|64)
             i2cbus=${NUM_MUX1_CHAN2_DEVICE}
             regAddr=0x33
-            idx=$(( (${QSFP_PORT} - 49) ))
+            idx=$(( (${port} - 49) ))
             dataAddr=$(( (32 + $idx) ))
+            rstsellpdataAddr=$(( (48 + $idx) ))
+            intChan=0x0
+            rstChan=0x0
             presentChan=0x1
+            modselChan=0x1
+            lpmodeChan=0x2
             eeprombus=${NUM_MUX1_CHAN2_DEVICE}
-            eepromidx=$(( (${QSFP_PORT} - 48) ))
+            eepromidx=$(( (${port} - 48) ))
+            intabsidx=$(( (${port} - 28) ))
+            rstsellpidx=$(( (${port} - 18) ))
             eepromAddr=0x50
         ;;
         *)
@@ -666,6 +680,11 @@ function _i2c_qsfp_eeprom_get {
             exit
         ;;
     esac
+}
+
+#Get SFP/QSFP EEPROM Information
+function _i2c_qsfp_eeprom_get {
+    _qsfp_port_i2c_var_set ${QSFP_PORT}
 
     regData=`i2cget -y $i2cbus $regAddr $dataAddr`
 
@@ -684,11 +703,102 @@ function _i2c_qsfp_eeprom_get {
         sleep 1
     fi
     cat ${PATH_SYS_I2C_DEVICES}/$eeprombus-$(printf "%04x" $eepromAddr)/eeprom | hexdump -C
-    #sleep 1
-    #echo "$eepromAddr" > ${PATH_SYS_I2C_DEVICES}/i2c-$eeprombus/delete_device
+    sleep 1
+    echo "$eepromAddr" > ${PATH_SYS_I2C_DEVICES}/i2c-$eeprombus/delete_device
 
     #Config CPLD MUX
     i2cset -y $i2cbus $regAddr 0x4a 0x0
+
+}
+
+#Get QSFP ABS
+function _i2c_qsfp_abs_get {
+    _qsfp_port_i2c_var_set ${QSFP_PORT}
+
+    regData=`i2cget -y $i2cbus $regAddr $dataAddr`
+
+
+    #status: 0 -> Down, 1 -> Up
+    status=$(( $(($regData & ( 1 << $presentChan)))  != 0 ? 0 : 1 ))
+    echo "ABS=$status regData=$regData"
+
+
+}
+
+#Get QSFP INT
+function _i2c_qsfp_int_get {
+    _qsfp_port_i2c_var_set ${QSFP_PORT}
+
+    regData=`i2cget -y $i2cbus $regAddr $dataAddr`
+
+
+    #status: 0 -> Down, 1 -> Up
+    status=$(( $(($regData & ( 1 << $intChan)))  != 0 ? 0 : 1 ))
+    echo "INT=$status regData=$regData"
+
+
+}
+
+#Get QSFP RST
+function _i2c_qsfp_rst_get {
+
+    if [ ${QSFP_PORT} -lt 49 ] || [ ${QSFP_PORT} -gt 64 ]; then
+        echo "Please input 49~64"
+        exit
+    fi
+    _qsfp_port_i2c_var_set ${QSFP_PORT}
+
+
+    regData=`i2cget -y $i2cbus $regAddr $rstsellpdataAddr`
+
+    #status: 0 -> Down, 1 -> Up
+    status=$(( $(($regData & ( 1 << $rstChan)))  != 0 ? 1 : 0 ))
+    echo "RST=$status regData=$regData"
+    if [ $status = 0 ]; then
+        exit
+    fi
+
+}
+
+#Get QSFP MODSEL
+function _i2c_qsfp_modsel_get {
+
+    if [ ${QSFP_PORT} -lt 49 ] || [ ${QSFP_PORT} -gt 64 ]; then
+        echo "Please input 49~64"
+        exit
+    fi
+    _qsfp_port_i2c_var_set ${QSFP_PORT}
+
+
+    regData=`i2cget -y $i2cbus $regAddr $rstsellpdataAddr`
+
+    #status: 0 -> Down, 1 -> Up
+    status=$(( $(($regData & ( 1 << $lpmodeChan)))  != 0 ? 1 : 0 ))
+    echo "lpmodeChan=$status regData=$regData"
+    if [ $status = 0 ]; then
+        exit
+    fi
+
+}
+
+#Get QSFP LPMODE
+function _i2c_qsfp_lpmode_get {
+
+    if [ ${QSFP_PORT} -lt 49 ] || [ ${QSFP_PORT} -gt 64 ]; then
+        echo "Please input 49~64"
+        exit
+    fi
+    _qsfp_port_i2c_var_set ${QSFP_PORT}
+
+
+    regData=`i2cget -y $i2cbus $regAddr $rstsellpdataAddr`
+
+    #status: 0 -> Down, 1 -> Up
+    status=$(( $(($regData & ( 1 << $modselChan)))  != 0 ? 1 : 0 ))
+    echo "modselChan=$status regData=$regData"
+    if [ $status = 0 ]; then
+        exit
+    fi
 
 }
 
@@ -970,8 +1080,6 @@ function _main {
         _i2c_volmon_init
     elif [ "${EXEC_FUNC}" == "i2c_io_exp_init" ]; then
         _i2c_io_exp_init
-    elif [ "${EXEC_FUNC}" == "i2c_gpio_init" ]; then
-        _i2c_gpio_init
     elif [ "${EXEC_FUNC}" == "i2c_led_test" ]; then
         _i2c_led_test
     elif [ "${EXEC_FUNC}" == "i2c_mb_eeprom_get" ]; then
@@ -980,6 +1088,16 @@ function _main {
         _i2c_psu_eeprom_get
     elif [ "${EXEC_FUNC}" == "i2c_qsfp_eeprom_get" ]; then
         _i2c_qsfp_eeprom_get
+    elif [ "${EXEC_FUNC}" == "i2c_qsfp_abs_get" ]; then
+        _i2c_qsfp_abs_get
+    elif [ "${EXEC_FUNC}" == "i2c_qsfp_int_get" ]; then
+        _i2c_qsfp_int_get
+    elif [ "${EXEC_FUNC}" == "i2c_qsfp_rst_get" ]; then
+        _i2c_qsfp_rst_get
+    elif [ "${EXEC_FUNC}" == "i2c_qsfp_modsel_get" ]; then
+        _i2c_qsfp_modsel_get
+    elif [ "${EXEC_FUNC}" == "i2c_qsfp_lpmode_get" ]; then
+        _i2c_qsfp_lpmode_get
     elif [ "${EXEC_FUNC}" == "i2c_led_psu_status_set" ]; then
         _i2c_led_psu_status_set
     elif [ "${EXEC_FUNC}" == "i2c_led_fan_status_set" ]; then

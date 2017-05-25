@@ -106,6 +106,7 @@ function _help {
     echo "         : ${0} i2c_volmon_init"
     echo "         : ${0} i2c_io_exp_init"
     echo "         : ${0} i2c_gpio_init"
+    echo "         : ${0} i2c_gpio_deinit"
     echo "         : ${0} i2c_led_test"
     echo "         : ${0} i2c_psu_eeprom_get"
     echo "         : ${0} i2c_mb_eeprom_get"
@@ -512,9 +513,89 @@ function _i2c_unmount_sfp_eeprom {
     echo "$eepromAddr" > /sys/bus/i2c/devices/i2c-$eeprombus/new_device
     echo "Unmount Port $1 EEPROM"
 }
+
 #GPIO Init
 function _i2c_gpio_init {
-    echo "TBD: QSFP transceivers init not ready."
+
+    #QSFP/ZQSFP ABS+INT
+    echo "pca9535 0x23" > /sys/bus/i2c/devices/i2c-${NUM_MUX2_CHAN0_DEVICE}/new_device
+
+    _retry "echo 240 > /sys/class/gpio/export"
+    echo 241 > /sys/class/gpio/export
+    echo 242 > /sys/class/gpio/export
+    echo 243 > /sys/class/gpio/export
+    echo 244 > /sys/class/gpio/export
+    echo 245 > /sys/class/gpio/export
+    echo 246 > /sys/class/gpio/export
+    echo 247 > /sys/class/gpio/export
+    echo 248 > /sys/class/gpio/export
+    echo 249 > /sys/class/gpio/export
+    echo 250 > /sys/class/gpio/export
+    echo 251 > /sys/class/gpio/export
+    echo 252 > /sys/class/gpio/export
+    echo 253 > /sys/class/gpio/export
+    echo 254 > /sys/class/gpio/export
+    echo 255 > /sys/class/gpio/export
+
+    echo 1 > /sys/class/gpio/gpio241/active_low #QSFP49 ABS
+    echo 1 > /sys/class/gpio/gpio240/active_low #QSFP48 ABS
+    echo 1 > /sys/class/gpio/gpio243/active_low #QSFP51 ABS
+    echo 1 > /sys/class/gpio/gpio242/active_low #QSFP50 ABS
+    echo 1 > /sys/class/gpio/gpio245/active_low #QSFP53 ABS
+    echo 1 > /sys/class/gpio/gpio244/active_low #QSFP52 ABS
+    echo 1 > /sys/class/gpio/gpio247/active_low #NA
+    echo 1 > /sys/class/gpio/gpio246/active_low #NA
+    echo 1 > /sys/class/gpio/gpio249/active_low #QSFP49 INT
+    echo 1 > /sys/class/gpio/gpio248/active_low #QSFP48 INT
+    echo 1 > /sys/class/gpio/gpio251/active_low #QSFP51 INT
+    echo 1 > /sys/class/gpio/gpio250/active_low #QSFP50 INT
+    echo 1 > /sys/class/gpio/gpio253/active_low #QSFP53 INT
+    echo 1 > /sys/class/gpio/gpio252/active_low #QSFP52 INT
+    echo 1 > /sys/class/gpio/gpio255/active_low #NA
+    echo 1 > /sys/class/gpio/gpio254/active_low #NA
+
+    #QSFP/zQSFP LPMODE+MODSEL
+    echo "pca9535 0x23" > /sys/bus/i2c/devices/i2c-${NUM_MUX2_CHAN3_DEVICE}/new_device
+    echo 224 > /sys/class/gpio/export  #QSFP0 LPMODE
+    echo 225 > /sys/class/gpio/export  #QSFP1 LPMODE
+    echo 226 > /sys/class/gpio/export  #QSFP2 LPMODE
+    echo 227 > /sys/class/gpio/export  #QSFP3 LPMODE
+    echo 228 > /sys/class/gpio/export  #QSFP4 LPMODE
+    echo 229 > /sys/class/gpio/export  #QSFP5 LPMODE
+    echo 230 > /sys/class/gpio/export  #NA
+    echo 231 > /sys/class/gpio/export  #NA
+    echo 232 > /sys/class/gpio/export  #QSFP0 MODSEL
+    echo 233 > /sys/class/gpio/export  #QSFP1 MODSEL
+    echo 234 > /sys/class/gpio/export  #QSFP2 MODSEL
+    echo 235 > /sys/class/gpio/export  #QSFP3 MODSEL
+    echo 236 > /sys/class/gpio/export  #QSFP4 MODSEL
+    echo 237 > /sys/class/gpio/export  #QSFP5 MODSEL
+    echo 238 > /sys/class/gpio/export  #NA
+    echo 239 > /sys/class/gpio/export  #NA
+    echo out > /sys/class/gpio/gpio224/direction
+    echo out > /sys/class/gpio/gpio225/direction
+    echo out > /sys/class/gpio/gpio226/direction
+    echo out > /sys/class/gpio/gpio227/direction
+    echo out > /sys/class/gpio/gpio228/direction
+    echo out > /sys/class/gpio/gpio229/direction
+    echo out > /sys/class/gpio/gpio230/direction
+    echo out > /sys/class/gpio/gpio231/direction
+    echo out > /sys/class/gpio/gpio232/direction
+    echo out > /sys/class/gpio/gpio233/direction
+    echo out > /sys/class/gpio/gpio234/direction
+    echo out > /sys/class/gpio/gpio235/direction
+    echo out > /sys/class/gpio/gpio236/direction
+    echo out > /sys/class/gpio/gpio237/direction
+    echo out > /sys/class/gpio/gpio238/direction
+    echo out > /sys/class/gpio/gpio239/direction
+
+}
+
+#GPIO DeInit
+function _i2c_gpio_deinit {
+    echo "0x23" > /sys/bus/i2c/devices/i2c-${NUM_MUX2_CHAN0_DEVICE}/delete_device
+    echo "0x23" > /sys/bus/i2c/devices/i2c-${NUM_MUX2_CHAN3_DEVICE}/delete_device
+    echo "0x23" > /sys/bus/i2c/devices/i2c-${NUM_MUX2_CHAN5_DEVICE}/delete_device
 }
 
 #Set FAN Tray LED
@@ -775,9 +856,10 @@ function _i2c_led_test {
     echo "done..."
 }
 
-#Get QSFP EEPROM Information
-function _i2c_qsfp_eeprom_get {
-    case ${QSFP_PORT} in
+#Set QSFP Port variable
+function _qsfp_port_i2c_var_set {
+    local port=$1
+    case ${port} in
         1|2|3|4|5|6|7|8)
             i2cbus=${NUM_MUX2_CHAN0_DEVICE}
             regAddr=0x20
@@ -812,28 +894,53 @@ function _i2c_qsfp_eeprom_get {
             i2cbus=${NUM_MUX2_CHAN0_DEVICE}
             regAddr=0x23
             dataAddr=0
+            gpioBase=$((240 - 48))
         ;;
         *)
             echo "Please input 1~54"
-            exit
+            exit ${FALSE}
         ;;
     esac
+}
 
-    regData=`i2cget -y $i2cbus $regAddr $dataAddr`
-    presentChan=$(( (${QSFP_PORT} - 1) % 8 ))
+#Get QSFP EEPROM Information
+function _i2c_qsfp_eeprom_get {
 
-    #status: 0 -> Down, 1 -> Up
-    status=$(( $(($regData & ( 1 << $presentChan)))  != 0 ? 0 : 1 ))
-    echo $status
+    _qsfp_port_i2c_var_set ${QSFP_PORT}
 
-    if [ $status = 0 ]; then
-        exit
+    if [ ${QSFP_PORT} -lt 49 ] && [ ${QSFP_PORT} -gt 0 ]; then
+        regData=`i2cget -y $i2cbus $regAddr $dataAddr`
+        presentChan=$(( (${QSFP_PORT} - 1) % 8 ))
+
+        #status: 0 -> Down, 1 -> Up
+        status=$(( $(($regData & ( 1 << $presentChan)))  != 0 ? 0 : 1 ))
+        echo $status
+
+        if [ $status = 0 ]; then
+            exit
+        fi
+
+        _get_sfp_eeprom_bus_idx ${QSFP_PORT}
+        eeprombus=${SFP_EEPROM_BUS_IDX}
+        eepromAddr=0x50
+        cat ${PATH_SYS_I2C_DEVICES}/$eeprombus-$(printf "%04x" $eepromAddr)/eeprom | hexdump -C
+    elif [ ${QSFP_PORT} -ge 49 ] && [ ${QSFP_PORT} -le 54 ]; then
+        #status: 0 -> Down, 1 -> Up
+        status=`cat /sys/class/gpio/gpio$(( $(($gpioBase + (${QSFP_PORT} - 1))) ))/value`
+        echo $status
+
+        if [ $status = 0 ]; then
+            exit
+        fi
+        _get_sfp_eeprom_bus_idx ${QSFP_PORT}
+        eeprombus=${SFP_EEPROM_BUS_IDX}
+        eepromAddr=0x50
+        cat ${PATH_SYS_I2C_DEVICES}/$eeprombus-$(printf "%04x" $eepromAddr)/eeprom | hexdump -C
+    else
+        echo "Invalid Parameters, Exit!!!"
+        _help
+        exit ${FALSE}
     fi
-
-    _get_sfp_eeprom_bus_idx ${QSFP_PORT}
-    eeprombus=${SFP_EEPROM_BUS_IDX}
-    eepromAddr=0x50
-    cat ${PATH_SYS_I2C_DEVICES}/$eeprombus-$(printf "%04x" $eepromAddr)/eeprom | hexdump -C
 
 }
 
@@ -1108,6 +1215,8 @@ function _main {
         _i2c_io_exp_init
     elif [ "${EXEC_FUNC}" == "i2c_gpio_init" ]; then
         _i2c_gpio_init
+    elif [ "${EXEC_FUNC}" == "i2c_gpio_deinit" ]; then
+        _i2c_gpio_deinit
     elif [ "${EXEC_FUNC}" == "i2c_led_test" ]; then
         _i2c_led_test
     elif [ "${EXEC_FUNC}" == "i2c_mb_eeprom_get" ]; then

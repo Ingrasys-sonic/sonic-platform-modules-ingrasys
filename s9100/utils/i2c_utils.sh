@@ -363,7 +363,7 @@ function _i2c_io_exp_init {
 function _i2c_gpio_init {
     #ABS Port 0-15
     echo "pca9535 0x20" > /sys/bus/i2c/devices/i2c-6/new_device
-    echo 240 > /sys/class/gpio/export 
+    echo 240 > /sys/class/gpio/export
     echo 241 > /sys/class/gpio/export
     echo 242 > /sys/class/gpio/export
     echo 243 > /sys/class/gpio/export
@@ -571,145 +571,6 @@ function _i2c_gpio_init {
     echo out > /sys/class/gpio/gpio174/direction
     echo out > /sys/class/gpio/gpio175/direction
 
-    #RST Port 0-15
-    echo "pca9535 0x22" > /sys/bus/i2c/devices/i2c-7/new_device
-    echo 144 > /sys/class/gpio/export
-    echo 145 > /sys/class/gpio/export
-    echo 146 > /sys/class/gpio/export
-    echo 147 > /sys/class/gpio/export
-    echo 148 > /sys/class/gpio/export
-    echo 149 > /sys/class/gpio/export
-    echo 150 > /sys/class/gpio/export
-    echo 151 > /sys/class/gpio/export
-    echo 152 > /sys/class/gpio/export
-    echo 153 > /sys/class/gpio/export
-    echo 154 > /sys/class/gpio/export
-    echo 155 > /sys/class/gpio/export
-    echo 156 > /sys/class/gpio/export
-    echo 157 > /sys/class/gpio/export
-    echo 158 > /sys/class/gpio/export
-    echo 159 > /sys/class/gpio/export
-    echo out > /sys/class/gpio/gpio144/direction
-    echo out > /sys/class/gpio/gpio145/direction
-    echo out > /sys/class/gpio/gpio146/direction
-    echo out > /sys/class/gpio/gpio147/direction
-    echo out > /sys/class/gpio/gpio148/direction
-    echo out > /sys/class/gpio/gpio149/direction
-    echo out > /sys/class/gpio/gpio150/direction
-    echo out > /sys/class/gpio/gpio151/direction
-    echo out > /sys/class/gpio/gpio152/direction
-    echo out > /sys/class/gpio/gpio153/direction
-    echo out > /sys/class/gpio/gpio154/direction
-    echo out > /sys/class/gpio/gpio155/direction
-    echo out > /sys/class/gpio/gpio156/direction
-    echo out > /sys/class/gpio/gpio157/direction
-    echo out > /sys/class/gpio/gpio158/direction
-    echo out > /sys/class/gpio/gpio159/direction
-
-    #RST Port 16-31
-    echo "pca9535 0x23" > /sys/bus/i2c/devices/i2c-7/new_device
-    echo 128 > /sys/class/gpio/export
-    echo 129 > /sys/class/gpio/export
-    echo 130 > /sys/class/gpio/export
-    echo 131 > /sys/class/gpio/export
-    echo 132 > /sys/class/gpio/export
-    echo 133 > /sys/class/gpio/export
-    echo 134 > /sys/class/gpio/export
-    echo 135 > /sys/class/gpio/export
-    echo 136 > /sys/class/gpio/export
-    echo 137 > /sys/class/gpio/export
-    echo 138 > /sys/class/gpio/export
-    echo 139 > /sys/class/gpio/export
-    echo 140 > /sys/class/gpio/export
-    echo 141 > /sys/class/gpio/export
-    echo 142 > /sys/class/gpio/export
-    echo 143 > /sys/class/gpio/export
-    echo out > /sys/class/gpio/gpio128/direction
-    echo out > /sys/class/gpio/gpio129/direction
-    echo out > /sys/class/gpio/gpio130/direction
-    echo out > /sys/class/gpio/gpio131/direction
-    echo out > /sys/class/gpio/gpio132/direction
-    echo out > /sys/class/gpio/gpio133/direction
-    echo out > /sys/class/gpio/gpio134/direction
-    echo out > /sys/class/gpio/gpio135/direction
-    echo out > /sys/class/gpio/gpio136/direction
-    echo out > /sys/class/gpio/gpio137/direction
-    echo out > /sys/class/gpio/gpio138/direction
-    echo out > /sys/class/gpio/gpio139/direction
-    echo out > /sys/class/gpio/gpio140/direction
-    echo out > /sys/class/gpio/gpio141/direction
-    echo out > /sys/class/gpio/gpio142/direction
-    echo out > /sys/class/gpio/gpio143/direction
-
-    #MODSEL Port 0-15
-    echo "pca9535 0x24" > /sys/bus/i2c/devices/i2c-7/new_device
-    echo 112 > /sys/class/gpio/export
-    echo 113 > /sys/class/gpio/export
-    echo 114 > /sys/class/gpio/export
-    echo 115 > /sys/class/gpio/export
-    echo 116 > /sys/class/gpio/export
-    echo 117 > /sys/class/gpio/export
-    echo 118 > /sys/class/gpio/export
-    echo 119 > /sys/class/gpio/export
-    echo 120 > /sys/class/gpio/export
-    echo 121 > /sys/class/gpio/export
-    echo 122 > /sys/class/gpio/export
-    echo 123 > /sys/class/gpio/export
-    echo 124 > /sys/class/gpio/export
-    echo 125 > /sys/class/gpio/export
-    echo 126 > /sys/class/gpio/export
-    echo 127 > /sys/class/gpio/export
-    echo out > /sys/class/gpio/gpio112/direction
-    echo out > /sys/class/gpio/gpio113/direction
-    echo out > /sys/class/gpio/gpio114/direction
-    echo out > /sys/class/gpio/gpio115/direction
-    echo out > /sys/class/gpio/gpio116/direction
-    echo out > /sys/class/gpio/gpio117/direction
-    echo out > /sys/class/gpio/gpio118/direction
-    echo out > /sys/class/gpio/gpio119/direction
-    echo out > /sys/class/gpio/gpio120/direction
-    echo out > /sys/class/gpio/gpio121/direction
-    echo out > /sys/class/gpio/gpio122/direction
-    echo out > /sys/class/gpio/gpio123/direction
-    echo out > /sys/class/gpio/gpio124/direction
-    echo out > /sys/class/gpio/gpio125/direction
-    echo out > /sys/class/gpio/gpio126/direction
-    echo out > /sys/class/gpio/gpio127/direction
-
-    #MODSEL Port 16-31
-    echo "pca9535 0x25" > /sys/bus/i2c/devices/i2c-7/new_device
-    echo 96 > /sys/class/gpio/export
-    echo 97 > /sys/class/gpio/export
-    echo 98 > /sys/class/gpio/export
-    echo 99 > /sys/class/gpio/export
-    echo 100 > /sys/class/gpio/export
-    echo 101 > /sys/class/gpio/export
-    echo 102 > /sys/class/gpio/export
-    echo 103 > /sys/class/gpio/export
-    echo 104 > /sys/class/gpio/export
-    echo 105 > /sys/class/gpio/export
-    echo 106 > /sys/class/gpio/export
-    echo 107 > /sys/class/gpio/export
-    echo 108 > /sys/class/gpio/export
-    echo 109 > /sys/class/gpio/export
-    echo 110 > /sys/class/gpio/export
-    echo 111 > /sys/class/gpio/export
-    echo out > /sys/class/gpio/gpio96/direction
-    echo out > /sys/class/gpio/gpio97/direction
-    echo out > /sys/class/gpio/gpio98/direction
-    echo out > /sys/class/gpio/gpio99/direction
-    echo out > /sys/class/gpio/gpio100/direction
-    echo out > /sys/class/gpio/gpio101/direction
-    echo out > /sys/class/gpio/gpio102/direction
-    echo out > /sys/class/gpio/gpio103/direction
-    echo out > /sys/class/gpio/gpio104/direction
-    echo out > /sys/class/gpio/gpio105/direction
-    echo out > /sys/class/gpio/gpio106/direction
-    echo out > /sys/class/gpio/gpio107/direction
-    echo out > /sys/class/gpio/gpio108/direction
-    echo out > /sys/class/gpio/gpio109/direction
-    echo out > /sys/class/gpio/gpio110/direction
-    echo out > /sys/class/gpio/gpio111/direction
 }
 
 #Set FAN Tray LED
@@ -979,24 +840,28 @@ function _qsfp_port_i2c_var_set {
             regAddr=0x20
             dataAddr=0
             eeprombusbase=${NUM_MUX3_CHAN0_DEVICE}
+            gpioBase=240
         ;;
         9|10|11|12|13|14|15|16)
             i2cbus=${NUM_MUX1_CHAN4_DEVICE}
             regAddr=0x20
             dataAddr=1
             eeprombusbase=${NUM_MUX4_CHAN0_DEVICE}
+            gpioBase=240
         ;;
         17|18|19|20|21|22|23|24)
             i2cbus=${NUM_MUX1_CHAN4_DEVICE}
             regAddr=0x21
             dataAddr=0
             eeprombusbase=${NUM_MUX5_CHAN0_DEVICE}
+            gpioBase=$((224 - 16))
         ;;
         25|26|27|28|29|30|31|32)
             i2cbus=${NUM_MUX1_CHAN4_DEVICE}
             regAddr=0x21
             dataAddr=1
             eeprombusbase=${NUM_MUX6_CHAN0_DEVICE}
+            gpioBase=$((224 - 16))
         ;;
         33)
             i2cbus=${NUM_MUX1_CHAN7_DEVICE}
@@ -1059,12 +924,8 @@ function _i2c_qsfp_eeprom_get {
 
     _qsfp_port_i2c_var_set ${QSFP_PORT}
 
-    regData=`i2cget -y $i2cbus $regAddr $dataAddr`
-    presentChan=$(( (${QSFP_PORT} - 1) % 8 ))
-    presentChan=$(( $(($presentChan % 2)) == 1 ? $presentChan - 1 : $presentChan + 1 ))
-
     #status: 0 -> Down, 1 -> Up
-    status=$(( $(($regData & ( 1 << $presentChan)))  != 0 ? 0 : 1 ))
+    status=`cat /sys/class/gpio/gpio$(( $(($gpioBase + (${QSFP_PORT} - 1) ^ 1)) ))/value`
     echo $status
 
     if [ $status = 0 ]; then
@@ -1139,12 +1000,8 @@ function _i2c_qsfp_status_get {
 
     _qsfp_port_i2c_var_set ${QSFP_PORT}
 
-    regData=`i2cget -y $i2cbus $regAddr $dataAddr`
-    presentChan=$(( (${QSFP_PORT} - 1) % 8 ))
-    presentChan=$(( $(($presentChan % 2)) == 1 ? $presentChan - 1 : $presentChan + 1 ))
-
     #status: 0 -> Down, 1 -> Up
-    status=$(( $(($regData & ( 1 << $presentChan)))  != 0 ? 0 : 1 ))
+    status=`cat /sys/class/gpio/gpio$(( $(($gpioBase + (${QSFP_PORT} - 1) ^ 1)) ))/value`
     echo "status=$status"
 }
 
