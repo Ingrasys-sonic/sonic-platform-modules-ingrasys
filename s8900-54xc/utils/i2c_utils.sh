@@ -239,7 +239,15 @@ function _i2c_init {
 
 #I2C Deinit
 function _i2c_deinit {
-    echo "TBD: Platform deinitialization not ready."
+    rmmod coretemp
+    rmmod jc42
+    rmmod w83795
+    rmmod eeprom_mb
+    _i2c_gpio_deinit
+    rmmod gpio-pca953x
+    rmmod i2c_mux_pca954x
+    rmmod i2c_ismt
+    rmmod i2c_i801
 }
 
 #Temperature sensor Init
@@ -595,7 +603,6 @@ function _i2c_gpio_init {
 function _i2c_gpio_deinit {
     echo "0x23" > /sys/bus/i2c/devices/i2c-${NUM_MUX2_CHAN0_DEVICE}/delete_device
     echo "0x23" > /sys/bus/i2c/devices/i2c-${NUM_MUX2_CHAN3_DEVICE}/delete_device
-    echo "0x23" > /sys/bus/i2c/devices/i2c-${NUM_MUX2_CHAN5_DEVICE}/delete_device
 }
 
 #Set FAN Tray LED

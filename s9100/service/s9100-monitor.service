@@ -2,6 +2,8 @@
 Description= This Platform Monitor service is to initialize platform and monitor platform.
 Before=platform-monitor.service
 After=sysinit.target
+Wants=fancontrol.service
+Wants=qsfp-monitor.service
 DefaultDependencies=no
 
 [Service]

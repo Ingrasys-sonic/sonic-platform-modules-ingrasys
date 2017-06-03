@@ -32,5 +32,7 @@ if [ "$1" = "purge" ]; then
         deb-systemd-helper unmask fancontrol.service >/dev/null
     fi
 fi
+# Generate kernel modules.dep and map files for remove eeprom_mb.
+depmod -a
 # End automatically added section
 

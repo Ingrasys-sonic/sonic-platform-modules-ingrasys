@@ -54,7 +54,7 @@ NUM_MUX1_CHAN7_DEVICE=$(( ${NUM_I801_DEVICE} + 9 ))
 
 PATH_SYS_I2C_DEVICES="/sys/bus/i2c/devices"
 PATH_HWMON_ROOT_DEVICES="/sys/class/hwmon"
-PATH_HWMON_W83795_DEVICE="${PATH_HWMON_ROOT_DEVICES}/hwmon1"
+PATH_HWMON_W83795_DEVICE="${PATH_HWMON_ROOT_DEVICES}/hwmon2"
 PATH_I801_DEVICE="${PATH_SYS_I2C_DEVICES}/i2c-${NUM_I801_DEVICE}"
 PATH_ISMT_DEVICE="${PATH_SYS_I2C_DEVICES}/i2c-${NUM_ISMT_DEVICE}"
 PATH_MUX_CHAN0_DEVICE="${PATH_SYS_I2C_DEVICES}/i2c-${NUM_MUX1_CHAN0_DEVICE}"
@@ -184,7 +184,14 @@ function _i2c_init {
 
 #I2C Deinit
 function _i2c_deinit {
-    echo "TBD: Platform deinitialization not ready."
+    rmmod coretemp
+    rmmod jc42
+    rmmod w83795
+    rmmod lm75
+    rmmod eeprom_mb
+    rmmod i2c_mux_pca954x
+    rmmod i2c_ismt
+    rmmod i2c_i801
 }
 
 #Temperature sensor Init

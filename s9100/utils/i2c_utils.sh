@@ -92,6 +92,7 @@ function _help {
     echo "         : ${0} i2c_volmon_init"
     echo "         : ${0} i2c_io_exp_init"
     echo "         : ${0} i2c_gpio_init"
+    echo "         : ${0} i2c_gpio_deinit"
     echo "         : ${0} i2c_led_test"
     echo "         : ${0} i2c_psu_eeprom_get"
     echo "         : ${0} i2c_mb_eeprom_get"
@@ -207,7 +208,15 @@ function _i2c_init {
 
 #I2C Deinit
 function _i2c_deinit {
-    echo "TBD: Platform deinitialization not ready."
+    rmmod coretemp
+    rmmod jc42
+    rmmod w83795
+    rmmod eeprom_mb
+    _i2c_gpio_deinit
+    rmmod gpio-pca953x
+    rmmod i2c_mux_pca954x
+    rmmod i2c_ismt
+    rmmod i2c_i801
 }
 
 #Temperature sensor Init
@@ -362,7 +371,7 @@ function _i2c_io_exp_init {
 #GPIO Init
 function _i2c_gpio_init {
     #ABS Port 0-15
-    echo "pca9535 0x20" > /sys/bus/i2c/devices/i2c-6/new_device
+    echo "pca9535 0x20" > /sys/bus/i2c/devices/i2c-${NUM_MUX1_CHAN4_DEVICE}/new_device
     echo 240 > /sys/class/gpio/export
     echo 241 > /sys/class/gpio/export
     echo 242 > /sys/class/gpio/export
@@ -397,7 +406,7 @@ function _i2c_gpio_init {
     echo 1 > /sys/class/gpio/gpio254/active_low #zQSFP15
 
     #ABS Port 16-31
-    echo "pca9535 0x21" > /sys/bus/i2c/devices/i2c-6/new_device
+    echo "pca9535 0x21" > /sys/bus/i2c/devices/i2c-${NUM_MUX1_CHAN4_DEVICE}/new_device
     echo 224 > /sys/class/gpio/export
     echo 225 > /sys/class/gpio/export
     echo 226 > /sys/class/gpio/export
@@ -432,7 +441,7 @@ function _i2c_gpio_init {
     echo 1 > /sys/class/gpio/gpio238/active_low #zQSFP31
 
     #INT Port 0-15
-    echo "pca9535 0x22" > /sys/bus/i2c/devices/i2c-6/new_device
+    echo "pca9535 0x22" > /sys/bus/i2c/devices/i2c-${NUM_MUX1_CHAN4_DEVICE}/new_device
     echo 208 > /sys/class/gpio/export
     echo 209 > /sys/class/gpio/export
     echo 210 > /sys/class/gpio/export
@@ -467,7 +476,7 @@ function _i2c_gpio_init {
     echo 1 > /sys/class/gpio/gpio223/active_low
 
     #INT Port 16-31
-    echo "pca9535 0x23" > /sys/bus/i2c/devices/i2c-6/new_device
+    echo "pca9535 0x23" > /sys/bus/i2c/devices/i2c-${NUM_MUX1_CHAN4_DEVICE}/new_device
     echo 192 > /sys/class/gpio/export
     echo 193 > /sys/class/gpio/export
     echo 194 > /sys/class/gpio/export
@@ -502,7 +511,7 @@ function _i2c_gpio_init {
     echo 1 > /sys/class/gpio/gpio207/active_low
 
     #LP Mode Port 0-15
-    echo "pca9535 0x20" > /sys/bus/i2c/devices/i2c-7/new_device
+    echo "pca9535 0x20" > /sys/bus/i2c/devices/i2c-${NUM_MUX1_CHAN5_DEVICE}/new_device
     echo 176 > /sys/class/gpio/export
     echo 177 > /sys/class/gpio/export
     echo 178 > /sys/class/gpio/export
@@ -537,7 +546,7 @@ function _i2c_gpio_init {
     echo out > /sys/class/gpio/gpio191/direction
 
     #LP Mode Port 16-31
-    echo "pca9535 0x21" > /sys/bus/i2c/devices/i2c-7/new_device
+    echo "pca9535 0x21" > /sys/bus/i2c/devices/i2c-${NUM_MUX1_CHAN5_DEVICE}/new_device
     echo 160 > /sys/class/gpio/export
     echo 161 > /sys/class/gpio/export
     echo 162 > /sys/class/gpio/export
@@ -571,6 +580,16 @@ function _i2c_gpio_init {
     echo out > /sys/class/gpio/gpio174/direction
     echo out > /sys/class/gpio/gpio175/direction
 
+}
+
+#GPIO DeInit
+function _i2c_gpio_deinit {
+    echo "0x20" > /sys/bus/i2c/devices/i2c-${NUM_MUX1_CHAN4_DEVICE}/delete_device
+    echo "0x21" > /sys/bus/i2c/devices/i2c-${NUM_MUX1_CHAN4_DEVICE}/delete_device
+    echo "0x22" > /sys/bus/i2c/devices/i2c-${NUM_MUX1_CHAN4_DEVICE}/delete_device
+    echo "0x23" > /sys/bus/i2c/devices/i2c-${NUM_MUX1_CHAN4_DEVICE}/delete_device
+    echo "0x20" > /sys/bus/i2c/devices/i2c-${NUM_MUX1_CHAN5_DEVICE}/delete_device
+    echo "0x21" > /sys/bus/i2c/devices/i2c-${NUM_MUX1_CHAN5_DEVICE}/delete_device
 }
 
 #Set FAN Tray LED
@@ -1291,6 +1310,8 @@ function _main {
         _i2c_io_exp_init
     elif [ "${EXEC_FUNC}" == "i2c_gpio_init" ]; then
         _i2c_gpio_init
+    elif [ "${EXEC_FUNC}" == "i2c_gpio_deinit" ]; then
+        _i2c_gpio_deinit
     elif [ "${EXEC_FUNC}" == "i2c_led_test" ]; then
         _i2c_led_test
     elif [ "${EXEC_FUNC}" == "i2c_mb_eeprom_get" ]; then

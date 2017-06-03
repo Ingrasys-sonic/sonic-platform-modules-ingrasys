@@ -15,5 +15,7 @@ fi
 if [ -x "/etc/init.d/qsfp-monitor" ]; then
     invoke-rc.d qsfp-monitor stop || exit $?
 fi
+# Driver deinit
+/usr/sbin/i2c_utils.sh i2c_deinit
 # End automatically added section
 

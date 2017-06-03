@@ -1,7 +1,7 @@
 [Unit]
 Description= This QSFP Monitor service is to setup QSFP SI.
+Requires=s9100-monitor.service
 After=s9100-monitor.service
-DefaultDependencies=no
 
 [Service]
 ExecStart=/usr/sbin/qsfp_monitor.sh
