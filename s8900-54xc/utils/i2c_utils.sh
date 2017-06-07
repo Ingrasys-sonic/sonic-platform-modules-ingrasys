@@ -239,15 +239,11 @@ function _i2c_init {
 
 #I2C Deinit
 function _i2c_deinit {
-    rmmod coretemp
-    rmmod jc42
-    rmmod w83795
-    rmmod eeprom_mb
     _i2c_gpio_deinit
-    rmmod gpio-pca953x
-    rmmod i2c_mux_pca954x
-    rmmod i2c_ismt
-    rmmod i2c_i801
+    for mod in coretemp jc42 w83795 eeprom_mb gpio-pca953x i2c_mux_pca954x i2c_ismt i2c_i801;
+    do
+        [ "$(lsmod | grep "^$mod ")" != "" ] && rmmod $mod
+    done
 }
 
 #Temperature sensor Init
@@ -1130,7 +1126,7 @@ function _i2c_psu1_led {
 function _i2c_board_type_get {
     boardType=`i2cget -y ${NUM_I801_DEVICE} 0x33 0x00`
     boardBuildRev=$((($boardType) & 0x03))
-    boardHwRev=$((($boardType) >> 2 & 0xC0))
+    boardHwRev=$((($boardType) >> 2 & 0x03))
     boardId=$((($boardType) >> 4))
     printf "BOARD_ID is 0x%02x, HW Rev %d, Build Rev %d\n" $boardId $boardHwRev $boardBuildRev
 

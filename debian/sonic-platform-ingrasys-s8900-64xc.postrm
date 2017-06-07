@@ -33,6 +33,6 @@ if [ "$1" = "purge" ]; then
     fi
 fi
 # Generate kernel modules.dep and map files for remove eeprom_mb.
-depmod -a
+depmod -a || true
 # End automatically added section
 

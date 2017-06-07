@@ -3,7 +3,7 @@
 deb-systemd-helper unmask s8900-54xc-monitor.service >/dev/null || true
 deb-systemd-helper unmask fancontrol.service >/dev/null || true
 # Generate kernel modules.dep and map files for add eeprom_mb.
-depmod -a
+depmod -a || true
 # was-enabled defaults to true, so new installations run enable.
 if deb-systemd-helper --quiet was-enabled s8900-54xc-monitor.service; then
     # Enables the unit on first installation, creates new
