@@ -16,3 +16,7 @@ Description: This package contains S8900-64XC platform driver utility for SONiC 
 Package: sonic-platform-ingrasys-s8900-54xc
 Architecture: amd64 
 Description: This package contains S8900-54XC platform driver utility for SONiC project.
+
+Package: sonic-platform-ingrasys-s8810-32q
+Architecture: amd64 
+Description: This package contains S8810-32Q platform driver utility for SONiC project.
