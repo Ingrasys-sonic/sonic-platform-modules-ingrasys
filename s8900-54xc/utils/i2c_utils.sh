@@ -592,6 +592,148 @@ function _i2c_gpio_init {
     echo out > /sys/class/gpio/gpio237/direction
     echo out > /sys/class/gpio/gpio238/direction
     echo out > /sys/class/gpio/gpio239/direction
+    
+    #QSFP RST
+    echo "pca9535 0x23" > /sys/bus/i2c/devices/i2c-${NUM_MUX2_CHAN5_DEVICE}/new_device
+    echo 208 > /sys/class/gpio/export  #QSFP0 RST
+    echo 209 > /sys/class/gpio/export  #QSFP1 RST
+    echo 210 > /sys/class/gpio/export  #QSFP2 RST
+    echo 211 > /sys/class/gpio/export  #QSFP3 RST
+    echo 212 > /sys/class/gpio/export  #QSFP4 RST
+    echo 213 > /sys/class/gpio/export  #QSFP5 RST
+    echo 214 > /sys/class/gpio/export  #NA
+    echo 215 > /sys/class/gpio/export  #NA
+    echo 216 > /sys/class/gpio/export  #NA
+    echo 217 > /sys/class/gpio/export  #NA
+    echo 218 > /sys/class/gpio/export  #NA
+    echo 219 > /sys/class/gpio/export  #NA
+    echo 220 > /sys/class/gpio/export  #NA
+    echo 221 > /sys/class/gpio/export  #NA
+    echo 222 > /sys/class/gpio/export  #NA
+    echo 223 > /sys/class/gpio/export  #NA
+    echo out > /sys/class/gpio/gpio208/direction
+    echo out > /sys/class/gpio/gpio209/direction
+    echo out > /sys/class/gpio/gpio210/direction
+    echo out > /sys/class/gpio/gpio211/direction
+    echo out > /sys/class/gpio/gpio212/direction
+    echo out > /sys/class/gpio/gpio213/direction
+    echo 1 > /sys/class/gpio/gpio208/active_low
+    echo 1 > /sys/class/gpio/gpio209/active_low
+    echo 1 > /sys/class/gpio/gpio210/active_low
+    echo 1 > /sys/class/gpio/gpio211/active_low
+    echo 1 > /sys/class/gpio/gpio212/active_low
+    echo 1 > /sys/class/gpio/gpio213/active_low
+    echo 0 > /sys/class/gpio/gpio208/value
+    echo 0 > /sys/class/gpio/gpio209/value
+    echo 0 > /sys/class/gpio/gpio210/value
+    echo 0 > /sys/class/gpio/gpio211/value
+    echo 0 > /sys/class/gpio/gpio212/value
+    echo 0 > /sys/class/gpio/gpio213/value
+    
+    #SFP+ ABS 0-15
+    echo "pca9535 0x20" > /sys/bus/i2c/devices/i2c-${NUM_MUX2_CHAN0_DEVICE}/new_device
+    echo 192 > /sys/class/gpio/export
+    echo 193 > /sys/class/gpio/export
+    echo 194 > /sys/class/gpio/export
+    echo 195 > /sys/class/gpio/export
+    echo 196 > /sys/class/gpio/export
+    echo 197 > /sys/class/gpio/export
+    echo 198 > /sys/class/gpio/export
+    echo 199 > /sys/class/gpio/export
+    echo 200 > /sys/class/gpio/export
+    echo 201 > /sys/class/gpio/export
+    echo 202 > /sys/class/gpio/export
+    echo 203 > /sys/class/gpio/export
+    echo 204 > /sys/class/gpio/export
+    echo 205 > /sys/class/gpio/export
+    echo 206 > /sys/class/gpio/export
+    echo 207 > /sys/class/gpio/export
+    echo 1 > /sys/class/gpio/gpio192/active_low #SFP+00
+    echo 1 > /sys/class/gpio/gpio193/active_low #SFP+01
+    echo 1 > /sys/class/gpio/gpio194/active_low #SFP+02
+    echo 1 > /sys/class/gpio/gpio195/active_low #SFP+03
+    echo 1 > /sys/class/gpio/gpio196/active_low #SFP+04
+    echo 1 > /sys/class/gpio/gpio197/active_low #SFP+05
+    echo 1 > /sys/class/gpio/gpio198/active_low #SFP+06
+    echo 1 > /sys/class/gpio/gpio199/active_low #SFP+07
+    echo 1 > /sys/class/gpio/gpio200/active_low #SFP+08
+    echo 1 > /sys/class/gpio/gpio201/active_low #SFP+09
+    echo 1 > /sys/class/gpio/gpio202/active_low #SFP+10
+    echo 1 > /sys/class/gpio/gpio203/active_low #SFP+11
+    echo 1 > /sys/class/gpio/gpio204/active_low #SFP+12
+    echo 1 > /sys/class/gpio/gpio205/active_low #SFP+13
+    echo 1 > /sys/class/gpio/gpio206/active_low #SFP+14
+    echo 1 > /sys/class/gpio/gpio207/active_low #SFP+15
+    
+    #SFP+ ABS 16-31
+    echo "pca9535 0x21" > /sys/bus/i2c/devices/i2c-${NUM_MUX2_CHAN0_DEVICE}/new_device
+    echo 176 > /sys/class/gpio/export
+    echo 177 > /sys/class/gpio/export
+    echo 178 > /sys/class/gpio/export
+    echo 179 > /sys/class/gpio/export
+    echo 180 > /sys/class/gpio/export
+    echo 181 > /sys/class/gpio/export
+    echo 182 > /sys/class/gpio/export
+    echo 183 > /sys/class/gpio/export
+    echo 184 > /sys/class/gpio/export
+    echo 185 > /sys/class/gpio/export
+    echo 186 > /sys/class/gpio/export
+    echo 187 > /sys/class/gpio/export
+    echo 188 > /sys/class/gpio/export
+    echo 189 > /sys/class/gpio/export
+    echo 190 > /sys/class/gpio/export
+    echo 191 > /sys/class/gpio/export
+    echo 1 > /sys/class/gpio/gpio176/active_low #SFP+16
+    echo 1 > /sys/class/gpio/gpio177/active_low #SFP+17
+    echo 1 > /sys/class/gpio/gpio178/active_low #SFP+18
+    echo 1 > /sys/class/gpio/gpio179/active_low #SFP+19
+    echo 1 > /sys/class/gpio/gpio180/active_low #SFP+20
+    echo 1 > /sys/class/gpio/gpio181/active_low #SFP+21
+    echo 1 > /sys/class/gpio/gpio182/active_low #SFP+22
+    echo 1 > /sys/class/gpio/gpio183/active_low #SFP+23
+    echo 1 > /sys/class/gpio/gpio184/active_low #SFP+24
+    echo 1 > /sys/class/gpio/gpio185/active_low #SFP+25
+    echo 1 > /sys/class/gpio/gpio186/active_low #SFP+26
+    echo 1 > /sys/class/gpio/gpio187/active_low #SFP+27
+    echo 1 > /sys/class/gpio/gpio188/active_low #SFP+28
+    echo 1 > /sys/class/gpio/gpio189/active_low #SFP+29
+    echo 1 > /sys/class/gpio/gpio190/active_low #SFP+30
+    echo 1 > /sys/class/gpio/gpio191/active_low #SFP+31
+    
+    #SFP+ ABS 32-47
+    echo "pca9535 0x22" > /sys/bus/i2c/devices/i2c-${NUM_MUX2_CHAN0_DEVICE}/new_device
+    echo 160 > /sys/class/gpio/export
+    echo 161 > /sys/class/gpio/export
+    echo 162 > /sys/class/gpio/export
+    echo 163 > /sys/class/gpio/export
+    echo 164 > /sys/class/gpio/export
+    echo 165 > /sys/class/gpio/export
+    echo 166 > /sys/class/gpio/export
+    echo 167 > /sys/class/gpio/export
+    echo 168 > /sys/class/gpio/export
+    echo 169 > /sys/class/gpio/export
+    echo 170 > /sys/class/gpio/export
+    echo 171 > /sys/class/gpio/export
+    echo 172 > /sys/class/gpio/export
+    echo 173 > /sys/class/gpio/export
+    echo 174 > /sys/class/gpio/export
+    echo 175 > /sys/class/gpio/export
+    echo 1 > /sys/class/gpio/gpio160/active_low #SFP+32
+    echo 1 > /sys/class/gpio/gpio161/active_low #SFP+33
+    echo 1 > /sys/class/gpio/gpio162/active_low #SFP+34
+    echo 1 > /sys/class/gpio/gpio163/active_low #SFP+35
+    echo 1 > /sys/class/gpio/gpio164/active_low #SFP+36
+    echo 1 > /sys/class/gpio/gpio165/active_low #SFP+37
+    echo 1 > /sys/class/gpio/gpio166/active_low #SFP+38
+    echo 1 > /sys/class/gpio/gpio167/active_low #SFP+39
+    echo 1 > /sys/class/gpio/gpio168/active_low #SFP+40
+    echo 1 > /sys/class/gpio/gpio169/active_low #SFP+41
+    echo 1 > /sys/class/gpio/gpio170/active_low #SFP+42
+    echo 1 > /sys/class/gpio/gpio171/active_low #SFP+43
+    echo 1 > /sys/class/gpio/gpio172/active_low #SFP+44
+    echo 1 > /sys/class/gpio/gpio173/active_low #SFP+45
+    echo 1 > /sys/class/gpio/gpio174/active_low #SFP+46
+    echo 1 > /sys/class/gpio/gpio175/active_low #SFP+47
 
 }
 
@@ -599,6 +741,10 @@ function _i2c_gpio_init {
 function _i2c_gpio_deinit {
     echo "0x23" > /sys/bus/i2c/devices/i2c-${NUM_MUX2_CHAN0_DEVICE}/delete_device
     echo "0x23" > /sys/bus/i2c/devices/i2c-${NUM_MUX2_CHAN3_DEVICE}/delete_device
+    echo "0x23" > /sys/bus/i2c/devices/i2c-${NUM_MUX2_CHAN5_DEVICE}/delete_device
+    echo "0x20" > /sys/bus/i2c/devices/i2c-${NUM_MUX2_CHAN0_DEVICE}/delete_device
+    echo "0x21" > /sys/bus/i2c/devices/i2c-${NUM_MUX2_CHAN0_DEVICE}/delete_device
+    echo "0x22" > /sys/bus/i2c/devices/i2c-${NUM_MUX2_CHAN0_DEVICE}/delete_device
 }
 
 #Set FAN Tray LED
