@@ -608,6 +608,9 @@ function _i2c_gpio_init {
     do
         _gpio_export ${i} ${DIR_OUT} ${ACTIVE_LOW} 
         _set_gpiomap ${i} "QSFP$(( i - 127 ))_RST"
+        #Reset QSFP
+        echo "${ACTIVE_LOW}" > ${PATH_SYS_GPIO}/gpio${i}/value
+        echo "${ACTIVE_HIGH}" > ${PATH_SYS_GPIO}/gpio${i}/value
     done
 
     #MODSEL Port 0-31
