@@ -54,7 +54,7 @@ NUM_MUX1_CHAN7_DEVICE=$(( ${NUM_I801_DEVICE} + 9 ))
 
 PATH_SYS_I2C_DEVICES="/sys/bus/i2c/devices"
 PATH_HWMON_ROOT_DEVICES="/sys/class/hwmon"
-PATH_HWMON_W83795_DEVICE="${PATH_HWMON_ROOT_DEVICES}/hwmon2"
+PATH_HWMON_W83795_DEVICE="${PATH_HWMON_ROOT_DEVICES}/hwmon1"
 PATH_I801_DEVICE="${PATH_SYS_I2C_DEVICES}/i2c-${NUM_I801_DEVICE}"
 PATH_ISMT_DEVICE="${PATH_SYS_I2C_DEVICES}/i2c-${NUM_ISMT_DEVICE}"
 PATH_MUX_CHAN0_DEVICE="${PATH_SYS_I2C_DEVICES}/i2c-${NUM_MUX1_CHAN0_DEVICE}"
@@ -153,9 +153,9 @@ function _i2c_init {
     _i2c_volmon_init
     _i2c_hwmon_init
     modprobe coretemp
-    modprobe jc42
     modprobe w83795
     modprobe lm75
+    modprobe jc42
     modprobe sff_8436_eeprom
     modprobe eeprom
     modprobe eeprom_mb

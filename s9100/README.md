@@ -130,7 +130,7 @@ QSFP Module Port LEDs control by ASIC library.
 ### Fan speed
 
 Fan speed are controlled by the w83795 kernel module. 
-It can be found in `/sys/class/hwmon/hwmon3/device/`.
+It can be found in `/sys/class/hwmon/hwmon1/device/`.
 If they were compiled as modules, you will need to modprobe w83795 for
 their sysfs entries to show up. Each fan has an `fan<N>_input` file 
 for reading the fan speed. And `pwm1` setting fan1 to fan4, 
@@ -143,7 +143,7 @@ automatic control platform fan speed.
 ### Temperature sensors
 
 Temperature sensors are controlled by the w83795 kernel
-module. It can be found in `/sys/class/hwmon/hwmon3/device/`. 
+module. It can be found in `/sys/class/hwmon/hwmon1/device/`. 
 If they were compiled as modules, then you will need to modprobe w83795 for
 their sysfs entries to show up.
 `temp1_input` is front MAC temperature sensor. `temp2_input` is rear MAC 
