@@ -88,11 +88,11 @@ function _help {
     echo "         : ${0} i2c_psu_eeprom_get"
     echo "         : ${0} i2c_mb_eeprom_get"
     echo "         : ${0} i2c_qsfp_eeprom_get [1-64]"
+    echo "         : ${0} i2c_qsfp_status_get [1-64]"
+    echo "         : ${0} i2c_qsfp_type_get [1-64]"
     echo "         : ${0} i2c_qsfp_abs_get [1-64]"
     echo "         : ${0} i2c_qsfp_rst_get [49-64]"
-    echo "         : ${0} i2c_qsfp_int_get [49-64]"
     echo "         : ${0} i2c_qsfp_lpmode_get [49-64]"
-    echo "         : ${0} i2c_qsfp_modsel_get [49-64]"
     echo "         : ${0} i2c_board_type_get"
     echo "         : ${0} i2c_psu_status"
     echo "         : ${0} i2c_led_psu_status_set"
@@ -159,6 +159,7 @@ function _i2c_init {
     modprobe sff_8436_eeprom
     modprobe eeprom
     modprobe eeprom_mb
+    modprobe qsfp_cpld
     _i2c_fan_init
     _i2c_io_exp_init
     _i2c_led_psu_status_set
@@ -176,10 +177,8 @@ function _i2c_init {
     echo "tmp75 0x49" > ${PATH_SYS_I2C_DEVICES}/i2c-${NUM_MUX1_CHAN3_DEVICE}/new_device
     echo "Mount Main Board EEPROM"
     echo "mb_eeprom 0x54" > /sys/bus/i2c/devices/i2c-7/new_device
-    echo "Mount SFP/QSFP EEPROM"
-    echo "sff8436 0x50" > /sys/bus/i2c/devices/i2c-2/new_device
-    echo "sff8436 0x50" > /sys/bus/i2c/devices/i2c-3/new_device
-    echo "sff8436 0x50" > /sys/bus/i2c/devices/i2c-4/new_device
+    
+
 }
 
 #I2C Deinit
@@ -689,55 +688,83 @@ function _qsfp_port_i2c_var_set {
 function _i2c_qsfp_eeprom_get {
     _qsfp_port_i2c_var_set ${QSFP_PORT}
 
-    regData=`i2cget -y $i2cbus $regAddr $dataAddr`
+    regData=`cat /sys/devices/platform/ingrasys-s8900-64xc-cpld.0/qsfp_modprs`
+    port_num=$(( ${QSFP_PORT} - 1 ))
 
     #status: 0 -> Down, 1 -> Up
-    status=$(( $(($regData & ( 1 << $presentChan)))  != 0 ? 0 : 1 ))
-    echo $status
+    status=$(( $(($regData & ( 1 << $port_num)))  != 0 ? 0 : 1 ))
+
 
     if [ $status = 0 ]; then
+        echo "Module not present."
         exit
     fi
 
-    #Configure CPLD MUX
-    i2cset -y $i2cbus $regAddr 0x4a $eepromidx
-    if [ ! -e "${PATH_SYS_I2C_DEVICES}/$eeprombus-$(printf "%04x" $eepromAddr)/eeprom" ]; then
-        echo "sff8436 $eepromAddr" > ${PATH_SYS_I2C_DEVICES}/i2c-$eeprombus/new_device
-        sleep 1
+    #Read SFP/QSFP EEPROM
+    if [ ${QSFP_PORT} -lt 49 ]; then
+        cat ${PATH_SYS_I2C_DEVICES}/$eeprombus-$(printf "%04x" $eepromAddr)/sfp${QSFP_PORT} | hexdump -C
+    elif [ ${QSFP_PORT} -ge 49 ]; then
+        cat ${PATH_SYS_I2C_DEVICES}/$eeprombus-$(printf "%04x" $eepromAddr)/qsfp${QSFP_PORT} | hexdump -C
     fi
-    cat ${PATH_SYS_I2C_DEVICES}/$eeprombus-$(printf "%04x" $eepromAddr)/eeprom | hexdump -C
-    sleep 1
-    echo "$eepromAddr" > ${PATH_SYS_I2C_DEVICES}/i2c-$eeprombus/delete_device
+}
 
-    #Config CPLD MUX
-    i2cset -y $i2cbus $regAddr 0x4a 0x0
+#Get QSFP Status for QSFP monitor service
+function _i2c_qsfp_status_get {
+    _i2c_qsfp_abs_get
+    echo "status=$status"
+}
 
+#Get QSFP type for QSFP monitor server
+function _i2c_qsfp_type_get {
+    _qsfp_port_i2c_var_set ${QSFP_PORT}
+
+    regData=`cat /sys/devices/platform/ingrasys-s8900-64xc-cpld.0/qsfp_modprs`
+    port_num=$(( ${QSFP_PORT} - 1 ))
+
+    #status: 0 -> Down, 1 -> Up
+    status=$(( $(($regData & ( 1 << $port_num)))  != 0 ? 0 : 1 ))
+    
+    if [ $status = 0 ]; then
+        echo "Module not present."
+        exit
+    fi
+
+    #Read SFP/QSFP EEPROM
+    if [ ${QSFP_PORT} -lt 49 ]; then
+        qsfp_info=$(base64 ${PATH_SYS_I2C_DEVICES}/$eeprombus-$(printf "%04x" $eepromAddr)/sfp${QSFP_PORT})
+    elif [ ${QSFP_PORT} -ge 49 ]; then
+        qsfp_info=$(base64 ${PATH_SYS_I2C_DEVICES}/$eeprombus-$(printf "%04x" $eepromAddr)/qsfp${QSFP_PORT})
+    fi
+
+    if [ ${QSFP_PORT} -ge 1 ] && [ ${QSFP_PORT} -le 48 ]; then
+        echo "sfp"
+        # 1~48 port is sfp port
+        identifier=$(echo $qsfp_info | base64 -d -i | hexdump -s 0 -n 1 -e '"%x"')
+        connector=$(echo $qsfp_info | base64 -d -i | hexdump -s 2 -n 1 -e '"%x"')
+        transceiver=$(echo $qsfp_info | base64 -d -i | hexdump -s 3 -n 1 -e '"%x"')
+    else
+        echo "qsfp"
+        # 49~64 port is qsfp port
+        identifier=$(echo $qsfp_info | base64 -d -i | hexdump -s 128 -n 1 -e '"%x"')
+        connector=$(echo $qsfp_info | base64 -d -i | hexdump -s 130 -n 1 -e '"%x"')
+        transceiver=$(echo $qsfp_info | base64 -d -i | hexdump -s 131 -n 1 -e '"%x"')
+    fi
+
+    echo "identifier=$identifier"
+    echo "connector=$connector"
+    echo "transceiver=$transceiver"
 }
 
 #Get QSFP ABS
 function _i2c_qsfp_abs_get {
     _qsfp_port_i2c_var_set ${QSFP_PORT}
 
-    regData=`i2cget -y $i2cbus $regAddr $dataAddr`
-
+    regData=`cat /sys/devices/platform/ingrasys-s8900-64xc-cpld.0/qsfp_modprs`
+    port_num=$(( ${QSFP_PORT} - 1 ))
 
     #status: 0 -> Down, 1 -> Up
-    status=$(( $(($regData & ( 1 << $presentChan)))  != 0 ? 0 : 1 ))
+    status=$(( $(($regData & ( 1 << $port_num)))  != 0 ? 0 : 1 ))
     echo "ABS=$status regData=$regData"
-
-
-}
-
-#Get QSFP INT
-function _i2c_qsfp_int_get {
-    _qsfp_port_i2c_var_set ${QSFP_PORT}
-
-    regData=`i2cget -y $i2cbus $regAddr $dataAddr`
-
-
-    #status: 0 -> Down, 1 -> Up
-    status=$(( $(($regData & ( 1 << $intChan)))  != 0 ? 0 : 1 ))
-    echo "INT=$status regData=$regData"
 
 
 }
@@ -752,35 +779,12 @@ function _i2c_qsfp_rst_get {
     _qsfp_port_i2c_var_set ${QSFP_PORT}
 
 
-    regData=`i2cget -y $i2cbus $regAddr $rstsellpdataAddr`
+    regData=`cat /sys/devices/platform/ingrasys-s8900-64xc-cpld.0/qsfp_reset`
+    port_num=$(( ${QSFP_PORT} - 49 ))
 
     #status: 0 -> Down, 1 -> Up
-    status=$(( $(($regData & ( 1 << $rstChan)))  != 0 ? 1 : 0 ))
+    status=$(( $(($regData & ( 1 << $port_num)))  != 0 ? 0 : 1 ))
     echo "RST=$status regData=$regData"
-    if [ $status = 0 ]; then
-        exit
-    fi
-
-}
-
-#Get QSFP MODSEL
-function _i2c_qsfp_modsel_get {
-
-    if [ ${QSFP_PORT} -lt 49 ] || [ ${QSFP_PORT} -gt 64 ]; then
-        echo "Please input 49~64"
-        exit
-    fi
-    _qsfp_port_i2c_var_set ${QSFP_PORT}
-
-
-    regData=`i2cget -y $i2cbus $regAddr $rstsellpdataAddr`
-
-    #status: 0 -> Down, 1 -> Up
-    status=$(( $(($regData & ( 1 << $lpmodeChan)))  != 0 ? 1 : 0 ))
-    echo "lpmodeChan=$status regData=$regData"
-    if [ $status = 0 ]; then
-        exit
-    fi
 
 }
 
@@ -794,14 +798,12 @@ function _i2c_qsfp_lpmode_get {
     _qsfp_port_i2c_var_set ${QSFP_PORT}
 
 
-    regData=`i2cget -y $i2cbus $regAddr $rstsellpdataAddr`
+    regData=`cat /sys/devices/platform/ingrasys-s8900-64xc-cpld.0/qsfp_lpmode`
+    port_num=$(( ${QSFP_PORT} - 49 ))
 
     #status: 0 -> Down, 1 -> Up
-    status=$(( $(($regData & ( 1 << $modselChan)))  != 0 ? 1 : 0 ))
-    echo "modselChan=$status regData=$regData"
-    if [ $status = 0 ]; then
-        exit
-    fi
+    status=$(( $(($regData & ( 1 << $port_num)))  != 0 ? 1 : 0 ))
+    echo "LPMODE=$status regData=$regData"
 
 }
 
@@ -1091,14 +1093,14 @@ function _main {
         _i2c_psu_eeprom_get
     elif [ "${EXEC_FUNC}" == "i2c_qsfp_eeprom_get" ]; then
         _i2c_qsfp_eeprom_get
+    elif [ "${EXEC_FUNC}" == "i2c_qsfp_status_get" ]; then
+        _i2c_qsfp_status_get
+    elif [ "${EXEC_FUNC}" == "i2c_qsfp_type_get" ]; then
+        _i2c_qsfp_type_get
     elif [ "${EXEC_FUNC}" == "i2c_qsfp_abs_get" ]; then
         _i2c_qsfp_abs_get
-    elif [ "${EXEC_FUNC}" == "i2c_qsfp_int_get" ]; then
-        _i2c_qsfp_int_get
     elif [ "${EXEC_FUNC}" == "i2c_qsfp_rst_get" ]; then
         _i2c_qsfp_rst_get
-    elif [ "${EXEC_FUNC}" == "i2c_qsfp_modsel_get" ]; then
-        _i2c_qsfp_modsel_get
     elif [ "${EXEC_FUNC}" == "i2c_qsfp_lpmode_get" ]; then
         _i2c_qsfp_lpmode_get
     elif [ "${EXEC_FUNC}" == "i2c_led_psu_status_set" ]; then
