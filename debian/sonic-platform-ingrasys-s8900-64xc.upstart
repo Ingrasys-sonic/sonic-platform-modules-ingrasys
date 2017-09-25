@@ -3,3 +3,4 @@ description "SONiC platform service"
 respawn
 
 exec /usr/sbin/s8900_64xc_monitor.sh
+exec /usr/sbin/qsfp-monitor.sh
