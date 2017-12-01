@@ -204,6 +204,7 @@ function _i2c_init {
     ONOFF_LED="off"
     echo "${COLOR_LED} ${ONOFF_LED}"
     _i2c_sys_led
+    _config_rmem
 }
 
 #I2C Deinit
@@ -1419,6 +1420,11 @@ function _i2c_rear_temp {
         intTemp=$Data1
         printf "%c%d.%02d oC\n" "+" $intTemp $dTemp
     fi
+}
+
+#Increase read socket buffer for CoPP Test
+function _config_rmem {
+    echo "109430400" > /proc/sys/net/core/rmem_max
 }
 
 #Main Function

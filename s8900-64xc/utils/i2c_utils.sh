@@ -178,7 +178,7 @@ function _i2c_init {
     echo "Mount Main Board EEPROM"
     echo "mb_eeprom 0x54" > /sys/bus/i2c/devices/i2c-7/new_device
     
-
+    _config_rmem
 }
 
 #I2C Deinit
@@ -1064,6 +1064,11 @@ function _i2c_rear_temp {
         intTemp=$Data1
         printf "%c%d.%02d oC\n" "+" $intTemp $dTemp
     fi
+}
+
+#Increase read socket buffer for CoPP Test
+function _config_rmem {
+    echo "109430400" > /proc/sys/net/core/rmem_max
 }
 
 #Main Function

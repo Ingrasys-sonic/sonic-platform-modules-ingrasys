@@ -92,6 +92,12 @@ PSU_DC_OFF=0
 PSU_EXIST=1
 PSU_NOT_EXIST=0
 
+#GPIO Index for QSFP
+ZQSFP_PORT0_15_ABS_GPIO_IDX=192
+ZQSFP_PORT16_31_ABS_GPIO_IDX=176
+ZQSFP_PORT32_47_ABS_GPIO_IDX=160
+
+
 # Help usage function
 function _help {
     echo "========================================================="
@@ -111,6 +117,8 @@ function _help {
     echo "         : ${0} i2c_psu_eeprom_get"
     echo "         : ${0} i2c_mb_eeprom_get"
     echo "         : ${0} i2c_qsfp_eeprom_get [1-54]"
+    echo "         : ${0} i2c_qsfp_status_get [1-54]"
+    echo "         : ${0} i2c_qsfp_type_get [1-54]"
     echo "         : ${0} i2c_board_type_get"
     echo "         : ${0} i2c_psu_status"
     echo "         : ${0} i2c_led_psu_status_set"
@@ -235,6 +243,7 @@ function _i2c_init {
     do
         _i2c_mount_sfp_eeprom $i
     done
+    _config_rmem
 }
 
 #I2C Deinit
@@ -1013,31 +1022,37 @@ function _qsfp_port_i2c_var_set {
             i2cbus=${NUM_MUX2_CHAN0_DEVICE}
             regAddr=0x20
             dataAddr=0
+            gpioBase=${ZQSFP_PORT0_15_ABS_GPIO_IDX}
         ;;
         9|10|11|12|13|14|15|16)
             i2cbus=${NUM_MUX2_CHAN0_DEVICE}
             regAddr=0x20
             dataAddr=1
+            gpioBase=${ZQSFP_PORT0_15_ABS_GPIO_IDX}
         ;;
         17|18|19|20|21|22|23|24)
             i2cbus=${NUM_MUX2_CHAN0_DEVICE}
             regAddr=0x21
             dataAddr=0
+            gpioBase=${ZQSFP_PORT16_31_ABS_GPIO_IDX}
         ;;
         25|26|27|28|29|30|31|32)
             i2cbus=${NUM_MUX2_CHAN0_DEVICE}
             regAddr=0x21
             dataAddr=1
+            gpioBase=${ZQSFP_PORT16_31_ABS_GPIO_IDX}
         ;;
         33|34|35|36|37|38|39|40)
             i2cbus=${NUM_MUX2_CHAN0_DEVICE}
             regAddr=0x22
             dataAddr=0
+            gpioBase=${ZQSFP_PORT32_47_ABS_GPIO_IDX}
         ;;
         41|42|43|44|45|46|47|48)
             i2cbus=${NUM_MUX2_CHAN0_DEVICE}
             regAddr=0x22
             dataAddr=1
+            gpioBase=${ZQSFP_PORT32_47_ABS_GPIO_IDX}
         ;;
         49|50|51|52|53|54)
             i2cbus=${NUM_MUX2_CHAN0_DEVICE}
@@ -1052,17 +1067,54 @@ function _qsfp_port_i2c_var_set {
     esac
 }
 
+#Get QSFP present
+function _i2c_qsfp_status_get {
+    local status
+    _qsfp_port_i2c_var_set ${QSFP_PORT}
+    if [ ${QSFP_PORT} -lt 49 ] && [ ${QSFP_PORT} -gt 0 ]; then
+        status=`cat /sys/class/gpio/gpio$(( $(($gpioBase + (${QSFP_PORT} - 1) % 16 )) ))/value`
+    elif [ ${QSFP_PORT} -ge 49 ] && [ ${QSFP_PORT} -le 54 ]; then
+        status=`cat /sys/class/gpio/gpio$(( $(($gpioBase + (${QSFP_PORT} - 1))) ))/value`
+    fi
+
+    echo "status=$status"
+}
+
+#Get QSFP type
+function _i2c_qsfp_type_get {
+    _get_sfp_eeprom_bus_idx ${QSFP_PORT}
+    eeprombus=${SFP_EEPROM_BUS_IDX}
+    eepromAddr=0x50
+    qsfp_info=$(base64 ${PATH_SYS_I2C_DEVICES}/$eeprombus-$(printf "%04x" $eepromAddr)/eeprom)
+
+    if [ ${QSFP_PORT} -ge 1 ] && [ ${QSFP_PORT} -le 48 ]; then
+        echo "sfp"
+        # 1~48 port is sfp port
+        identifier=$(echo $qsfp_info | base64 -d -i | hexdump -s 0 -n 1 -e '"%x"')
+        connector=$(echo $qsfp_info | base64 -d -i | hexdump -s 2 -n 1 -e '"%x"')
+        transceiver=$(echo $qsfp_info | base64 -d -i | hexdump -s 3 -n 1 -e '"%x"')
+    else
+        echo "qsfp"
+        # 49~54 port is qsfp port
+        identifier=$(echo $qsfp_info | base64 -d -i | hexdump -s 128 -n 1 -e '"%x"')
+        connector=$(echo $qsfp_info | base64 -d -i | hexdump -s 130 -n 1 -e '"%x"')
+        transceiver=$(echo $qsfp_info | base64 -d -i | hexdump -s 131 -n 1 -e '"%x"')
+    fi
+
+    echo "identifier=$identifier"
+    echo "connector=$connector"
+    echo "transceiver=$transceiver"
+}
+
 #Get QSFP EEPROM Information
 function _i2c_qsfp_eeprom_get {
 
     _qsfp_port_i2c_var_set ${QSFP_PORT}
 
     if [ ${QSFP_PORT} -lt 49 ] && [ ${QSFP_PORT} -gt 0 ]; then
-        regData=`i2cget -y $i2cbus $regAddr $dataAddr`
-        presentChan=$(( (${QSFP_PORT} - 1) % 8 ))
 
         #status: 0 -> Down, 1 -> Up
-        status=$(( $(($regData & ( 1 << $presentChan)))  != 0 ? 0 : 1 ))
+        status=`cat /sys/class/gpio/gpio$(( $(($gpioBase + (${QSFP_PORT} - 1) % 16 )) ))/value`
         echo $status
 
         if [ $status = 0 ]; then
@@ -1343,6 +1395,11 @@ function _i2c_rear_temp {
     fi
 }
 
+#Increase read socket buffer for CoPP Test
+function _config_rmem {
+    echo "109430400" > /proc/sys/net/core/rmem_max
+}
+
 #Main Function
 function _main {
     tart_time_str=`date`
@@ -1374,6 +1431,10 @@ function _main {
         _i2c_psu_eeprom_get
     elif [ "${EXEC_FUNC}" == "i2c_qsfp_eeprom_get" ]; then
         _i2c_qsfp_eeprom_get
+    elif [ "${EXEC_FUNC}" == "i2c_qsfp_status_get" ]; then
+        _i2c_qsfp_status_get
+    elif [ "${EXEC_FUNC}" == "i2c_qsfp_type_get" ]; then
+        _i2c_qsfp_type_get
     elif [ "${EXEC_FUNC}" == "i2c_led_psu_status_set" ]; then
         _i2c_led_psu_status_set
     elif [ "${EXEC_FUNC}" == "i2c_led_fan_status_set" ]; then

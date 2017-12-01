@@ -482,6 +482,7 @@ function _i2c_init {
     echo "${COLOR_LED}"
     _i2c_sys_led
     modprobe cpld
+    _config_rmem
 }
 
 #I2C Deinit
@@ -1822,6 +1823,11 @@ function _i2c_10g_mux {
     fi
 }
 
+#Increase read socket buffer for CoPP Test
+function _config_rmem {
+    echo "109430400" > /proc/sys/net/core/rmem_max
+}
+
 #Main Function
 function _main {
     start_time_str=`date`
@@ -1894,9 +1900,6 @@ function _main {
     elif [ "${EXEC_FUNC}" == "i2c_test_all" ]; then
         _i2c_deinit
         _i2c_init
-        _i2c_temp_init
-        _i2c_fan_init
-        _i2c_io_exp_init
         _i2c_led_test
         _i2c_psu_eeprom_get
         _i2c_mb_eeprom_get

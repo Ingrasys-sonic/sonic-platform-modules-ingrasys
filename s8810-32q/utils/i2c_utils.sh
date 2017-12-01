@@ -324,6 +324,7 @@ function _i2c_init {
     ONOFF_LED="off"
     echo "${COLOR_LED} ${ONOFF_LED}"
     _i2c_sys_led
+    _config_rmem
 }
 
 #I2C Deinit
@@ -1328,6 +1329,11 @@ function _i2c_psu_status {
     psu2PwGood=$(($((($psuPwGood) >> 3 & 0x02))?1:0))
     printf "PSU1 Exist:%x PSU1 PW Good:%d\n" $psu1Exist $psu1PwGood
     printf "PSU2 Exist:%d PSU2 PW Good:%d\n" $psu2Exist $psu2PwGood
+}
+
+#Increase read socket buffer for CoPP Test
+function _config_rmem {
+    echo "109430400" > /proc/sys/net/core/rmem_max
 }
 
 #Main Function
