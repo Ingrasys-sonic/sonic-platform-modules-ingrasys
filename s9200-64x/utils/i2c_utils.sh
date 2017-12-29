@@ -147,8 +147,8 @@ do
 done
 
 #MUX Alias
-I2C_BUS_PSU1_EEPROM=${NUM_MUX_9545_PSU_CHAN[0]}
-I2C_BUS_PSU2_EEPROM=${NUM_MUX_9545_PSU_CHAN[1]}
+I2C_BUS_PSU1_EEPROM=${NUM_MUX_9545_PSU_CHAN[1]}
+I2C_BUS_PSU2_EEPROM=${NUM_MUX_9545_PSU_CHAN[0]}
 I2C_BUS_LED_BOARD=${NUM_MUX_9548_UCD_CHAN[1]}
 I2C_BUS_ID_GPIO=${NUM_MUX_9548_UCD_CHAN[2]}
 I2C_BUS_10GMUX=${NUM_MUX_9548_UCD_CHAN[4]}
@@ -229,7 +229,9 @@ I2C_ADDR_CPU_EEPROM=0x51
 I2C_ADDR_CPU_TMP75=0x4F
 I2C_ADDR_MUX_CPU_CPLD=0x77
 
-
+#sysfs
+PATH_SYSFS_PSU1="${PATH_SYS_I2C_DEVICES}/${I2C_BUS_PSU1_EEPROM}-$(printf "%04x" $I2C_ADDR_PSU_EEPROM)"
+PATH_SYSFS_PSU2="${PATH_SYS_I2C_DEVICES}/${I2C_BUS_PSU2_EEPROM}-$(printf "%04x" $I2C_ADDR_PSU_EEPROM)"
 
 #Active High/Low
 ACTIVE_LOW=1
@@ -471,6 +473,7 @@ function _i2c_init {
     _i2c_mb_eeprom_init "new"
     _i2c_cpu_eeprom_init "new"
     modprobe eeprom
+    _i2c_psu_init
     modprobe gpio-pca953x
     _i2c_sensors_init
     _i2c_fan_init
@@ -487,7 +490,7 @@ function _i2c_init {
 
 #I2C Deinit
 function _i2c_deinit {
-    for mod in cpld coretemp jc42 w83795 lm75 eeprom eeprom_mb gpio-pca953x i2c_mux_pca954x i2c_i801;
+    for mod in cpld coretemp jc42 w83795 lm75 eeprom eeprom_mb gpio-pca953x i2c_mux_pca954x i2c_i801 ingrasys_s9200_64x_psu;
     do   
         _util_rmmod $mod 
     done
@@ -1447,29 +1450,34 @@ function _i2c_qsfp_type_get {
     echo "transceiver = $transceiver"
 }
 
+#Init PSU Kernel Module
+function _i2c_psu_init {
+    echo "========================================================="
+    echo "# Description: I2C PSU Init"
+    echo "========================================================="
+    modprobe ingrasys_s9200_64x_psu
+
+    echo "psu1 ${I2C_ADDR_PSU_EEPROM}" > ${PATH_SYS_I2C_DEVICES}/i2c-${I2C_BUS_PSU1_EEPROM}/new_device
+    echo "psu2 ${I2C_ADDR_PSU_EEPROM}" > ${PATH_SYS_I2C_DEVICES}/i2c-${I2C_BUS_PSU2_EEPROM}/new_device
+}
 
 #Get PSU EEPROM Information
 function _i2c_psu_eeprom_get {
-    local i2c_addr=${I2C_ADDR_PSU_EEPROM}
-    local i2c_path=""
+    local eeprom_psu1=""
+    local eeprom_psu2=""
+
     echo "========================================================="
-    echo "# Description: I2C PSU EEPROM Get"
+    echo "# Description: I2C PSU EEPROM Get..."
     echo "========================================================="
 
     echo "PUS1 EEPROM"
-    i2c_path=${PATH_PSU1_EERPOM}
-    echo "eeprom ${i2c_addr}" > ${i2c_path}/new_device
-    dd if=${PATH_SYS_I2C_DEVICES}/${I2C_BUS_PSU1_EEPROM}-$(printf "%04x" $i2c_addr)/eeprom  of=psu1.rom
-    echo "${i2c_addr}" > ${i2c_path}/delete_device
-    cat psu1.rom | hexdump -C
+    eeprom_psu1="${PATH_SYSFS_PSU1}/psu_eeprom"
+    cat ${eeprom_psu1} | hexdump -C
 
     echo "------------------------------"
     echo "PUS2 EEPROM"
-    i2c_path=${PATH_PSU2_EEPROM}
-    echo "eeprom ${i2c_addr}" > ${i2c_path}/new_device
-    dd if=${PATH_SYS_I2C_DEVICES}/${I2C_BUS_PSU2_EEPROM}-$(printf "%04x" $i2c_addr)/eeprom  of=psu2.rom
-    echo "${i2c_addr}" > ${i2c_path}/delete_device
-    cat psu2.rom | hexdump -C
+    eeprom_psu2="${PATH_SYSFS_PSU2}/psu_eeprom"
+    cat ${eeprom_psu2} | hexdump -C
 }
 
 #Get MotherBoard EEPROM Information
@@ -1704,23 +1712,28 @@ function _i2c_cpld_version {
     cat ${PATH_SYS_CPLD}/cpld_version
 }
 
-#Get PSU Status from Dummy BMC Board
+#Get PSU Status
 function _i2c_psu_status {
-    local i2c_bus=$I2C_BUS_PSU_STATUS
-    local i2c_addr=$I2C_ADDR_PSU_STATUS
-    local value=0
+    local psu_abs=""
 
-    echo "========================================================="
-    echo "# Description: PSU Status"
-    echo "========================================================="
+    psu1PwGood=`cat ${PATH_SYSFS_PSU1}/psu_pg`
+    psu_abs=`cat ${PATH_SYSFS_PSU1}/psu_abs`
+    if [ "$psu_abs" == "0" ]; then
+        psu1Exist=1
+    else
+        psu1Exist=0
+    fi
 
-    value=$(_i2c_get $i2c_bus $i2c_addr $REG_IN_0)
-    psu1Exist=$(( (value >> 1 & 0x01)?0:1))
-    psu2Exist=$(( (value >> 4 & 0x01)?0:1))
-    psu1PwGood=$(( (value >> 0 & 0x01)?1:0))
-    psu2PwGood=$(( (value >> 3 & 0x01)?1:0))
-    printf "[PSU1 Exist] = %x, [PSU1 PW Good] = %d\n" $psu1Exist $psu1PwGood
-    printf "[PSU2 Exist] = %d, [PSU2 PW Good] = %d\n" $psu2Exist $psu2PwGood
+    psu2PwGood=`cat ${PATH_SYSFS_PSU2}/psu_pg`
+    psu_abs=`cat ${PATH_SYSFS_PSU2}/psu_abs`
+    if [ "$psu_abs" == "0" ]; then
+        psu2Exist=1
+    else
+        psu2Exist=0
+    fi
+
+    printf "PSU1 Exist:%x PSU1 PW Good:%d\n" $psu1Exist $psu1PwGood
+    printf "PSU2 Exist:%d PSU2 PW Good:%d\n" $psu2Exist $psu2PwGood
 }
 
 #Set 10G Mux to CPU or Front Panel

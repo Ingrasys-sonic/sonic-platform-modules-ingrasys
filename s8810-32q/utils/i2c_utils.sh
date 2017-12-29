@@ -49,7 +49,7 @@ NUM_ISMT_DEVICE=$(( ${NUM_I801_DEVICE} + 1 ))
 NUM_MUX_9548_0_CHAN0=$(( ${NUM_I801_DEVICE} + 2 ))
 NUM_MUX_9548_0_CHAN1=$(( ${NUM_I801_DEVICE} + 3 ))
 NUM_MUX_9548_0_CHAN2=$(( ${NUM_I801_DEVICE} + 4 ))
-#NUM_MUX_9548_0_CHAN3=$(( ${NUM_I801_DEVICE} + 5 )) 
+#NUM_MUX_9548_0_CHAN3=$(( ${NUM_I801_DEVICE} + 5 ))
 #NUM_MUX_9548_0_CHAN4=$(( ${NUM_I801_DEVICE} + 6 ))
 #NUM_MUX_9548_0_CHAN5=$(( ${NUM_I801_DEVICE} + 7 ))
 #NUM_MUX_9548_0_CHAN6=$(( ${NUM_I801_DEVICE} + 8 ))
@@ -59,7 +59,7 @@ NUM_MUX_9548_0_CHAN2=$(( ${NUM_I801_DEVICE} + 4 ))
 NUM_MUX_9548_1_CHAN0=$(( ${NUM_I801_DEVICE} + 10 ))
 NUM_MUX_9548_1_CHAN1=$(( ${NUM_I801_DEVICE} + 11 ))
 NUM_MUX_9548_1_CHAN2=$(( ${NUM_I801_DEVICE} + 12 ))
-NUM_MUX_9548_1_CHAN3=$(( ${NUM_I801_DEVICE} + 13 )) 
+NUM_MUX_9548_1_CHAN3=$(( ${NUM_I801_DEVICE} + 13 ))
 NUM_MUX_9548_1_CHAN4=$(( ${NUM_I801_DEVICE} + 14 ))
 NUM_MUX_9548_1_CHAN5=$(( ${NUM_I801_DEVICE} + 15 ))
 NUM_MUX_9548_1_CHAN6=$(( ${NUM_I801_DEVICE} + 16 ))
@@ -127,6 +127,10 @@ I2C_ADDR_MUX_9535_10=0x22
 I2C_ADDR_MB_EEPROM=0x56
 I2C_ADDR_QSFP_EEPROM=0x50
 I2C_ADDR_PSU_EEPROM=0x51
+
+#sysfs
+PATH_SYSFS_PSU1="${PATH_SYS_I2C_DEVICES}/${I2C_BUS_PSU1_EEPROM}-$(printf "%04x" $I2C_ADDR_PSU_EEPROM)"
+PATH_SYSFS_PSU2="${PATH_SYS_I2C_DEVICES}/${I2C_BUS_PSU2_EEPROM}-$(printf "%04x" $I2C_ADDR_PSU_EEPROM)"
 
 #Active High/Low
 ACTIVE_LOW=1
@@ -219,15 +223,15 @@ function _retry {
 function _set_i2cmap {
     local i2c_n=$1
     local alias=$2
-    
+
     #create i2cmap dir if not exist
     mkdir -p $PATH_I2CMAP
 
     #check i2c_n exists in sysfs
-    if [ ! -L ${PATH_SYS_I2C_DEVICES}/i2c-${i2c_n} ]; then 
+    if [ ! -L ${PATH_SYS_I2C_DEVICES}/i2c-${i2c_n} ]; then
         echo "${PATH_SYS_I2C_DEVICES}/i2c-${i2c_n} does not exist."
-        return 
-    fi   
+        return
+    fi
 
     #create or update link
     ln -sf ${PATH_SYS_I2C_DEVICES}/i2c-${i2c_n} ${PATH_I2CMAP}/${alias}
@@ -267,28 +271,28 @@ function _i2c_init {
     else
         echo "pca9548#1 ${I2C_ADDR_MUX_9548_1} already init."
     fi
-    #add MUX PCA9548#2 on PCA9548#1 
+    #add MUX PCA9548#2 on PCA9548#1
     if [ ! -e "${PATH_SYS_I2C_DEVICES}/i2c-${NUM_MUX_9548_2_CHAN0}" ]; then
         _retry "echo 'pca9548 ${I2C_ADDR_MUX_9548_2}' > ${PATH_MUX_9548_1_CHAN4}/new_device"
         _set_i2cmap ${NUM_MUX_9548_2_CHAN0} "PCA9548_2"
     else
         echo "pca9548#2 ${I2C_ADDR_MUX_9548_2} already init."
     fi
-    #add MUX PCA9548#3 on PCA9548#1 
+    #add MUX PCA9548#3 on PCA9548#1
     if [ ! -e "${PATH_SYS_I2C_DEVICES}/i2c-${NUM_MUX_9548_3_CHAN0}" ]; then
         _retry "echo 'pca9548 ${I2C_ADDR_MUX_9548_3}' > ${PATH_MUX_9548_1_CHAN5}/new_device"
         _set_i2cmap ${NUM_MUX_9548_3_CHAN0} "PCA9548_3"
     else
         echo "pca9548#3 ${I2C_ADDR_MUX_9548_3} already init."
     fi
-    #add MUX PCA9548#4 on PCA9548#1 
+    #add MUX PCA9548#4 on PCA9548#1
     if [ ! -e "${PATH_SYS_I2C_DEVICES}/i2c-${NUM_MUX_9548_4_CHAN0}" ]; then
         _retry "echo 'pca9548 ${I2C_ADDR_MUX_9548_4}' > ${PATH_MUX_9548_1_CHAN6}/new_device"
         _set_i2cmap ${NUM_MUX_9548_4_CHAN0} "PCA9548_4"
     else
         echo "pca9548#4 ${I2C_ADDR_MUX_9548_4} already init."
     fi
-    #add MUX PCA9548#5 on PCA9548#1 
+    #add MUX PCA9548#5 on PCA9548#1
     if [ ! -e "${PATH_SYS_I2C_DEVICES}/i2c-${NUM_MUX_9548_5_CHAN0}" ]; then
         _retry "echo 'pca9548 ${I2C_ADDR_MUX_9548_5}' > ${PATH_MUX_9548_1_CHAN7}/new_device"
         _set_i2cmap ${NUM_MUX_9548_5_CHAN0} "PCA9548_5"
@@ -299,7 +303,7 @@ function _i2c_init {
     i2cset -y ${NUM_I801_DEVICE} ${I2C_ADDR_CPLD} 0x34 0x10
 
     rmmod coretemp
-    rmmod jc42 
+    rmmod jc42
     rmmod w83795
     _i2c_temp_init
     _i2c_volmon_init
@@ -312,6 +316,7 @@ function _i2c_init {
     _i2c_fan_init
     _i2c_io_exp_init
     _i2c_gpio_init
+    _i2c_psu_init
     _i2c_qsfp_eeprom_init "new"
     _i2c_mb_eeprom_init "new"
     _i2c_led_psu_status_set
@@ -330,9 +335,9 @@ function _i2c_init {
 #I2C Deinit
 function _i2c_deinit {
     _i2c_gpio_deinit
-    for mod in coretemp jc42 w83795 eeprom_mb gpio-pca953x i2c_mux_pca954x i2c_ismt i2c_i801;
-    do   
-        [ "$(lsmod | grep "^$mod ")" != "" ] && rmmod $mod 
+    for mod in coretemp jc42 w83795 eeprom_mb gpio-pca953x i2c_mux_pca954x i2c_ismt i2c_i801 ingrasys_s8810_32q_psu;
+    do
+        [ "$(lsmod | grep "^$mod ")" != "" ] && rmmod $mod
     done
     _clear_i2cmap
 }
@@ -396,9 +401,9 @@ function _i2c_io_exp_init {
     #command byte 2/3,  output logic level is 0
     #command byte 4/5,  polarity is not inverted
     #command byte 6/7,  direction is input
-    i2cset -y -r ${I2C_BUS_FAN_STATUS} ${I2C_ADDR_MUX_9535_FAN} ${REG_OUT_0} 0x11 
+    i2cset -y -r ${I2C_BUS_FAN_STATUS} ${I2C_ADDR_MUX_9535_FAN} ${REG_OUT_0} 0x11
     i2cset -y -r ${I2C_BUS_FAN_STATUS} ${I2C_ADDR_MUX_9535_FAN} ${REG_OUT_1} 0x11
-    i2cset -y -r ${I2C_BUS_FAN_STATUS} ${I2C_ADDR_MUX_9535_FAN} ${REG_POLARITY_0} 0x00 
+    i2cset -y -r ${I2C_BUS_FAN_STATUS} ${I2C_ADDR_MUX_9535_FAN} ${REG_POLARITY_0} 0x00
     i2cset -y -r ${I2C_BUS_FAN_STATUS} ${I2C_ADDR_MUX_9535_FAN} ${REG_POLARITY_1} 0x00
     i2cset -y -r ${I2C_BUS_FAN_STATUS} ${I2C_ADDR_MUX_9535_FAN} ${REG_CFG_0} 0xCC
     i2cset -y -r ${I2C_BUS_FAN_STATUS} ${I2C_ADDR_MUX_9535_FAN} ${REG_CFG_1} 0xCC
@@ -407,10 +412,10 @@ function _i2c_io_exp_init {
     #PCA9535_LED LED_BOARD
     #command byte 2/3,  output logic level is 0
     #command byte 4/5,  polarity is not inverted
-    #command byte 6/7,  direction is output 
+    #command byte 6/7,  direction is output
     i2cset -y -r ${I2C_BUS_LED_BOARD} ${I2C_ADDR_MUX_9535_LED} ${REG_OUT_0} 0xFF #active low
     i2cset -y -r ${I2C_BUS_LED_BOARD} ${I2C_ADDR_MUX_9535_LED} ${REG_OUT_1} 0xFF #active low
-    i2cset -y -r ${I2C_BUS_LED_BOARD} ${I2C_ADDR_MUX_9535_LED} ${REG_POLARITY_0} 0x00 
+    i2cset -y -r ${I2C_BUS_LED_BOARD} ${I2C_ADDR_MUX_9535_LED} ${REG_POLARITY_0} 0x00
     i2cset -y -r ${I2C_BUS_LED_BOARD} ${I2C_ADDR_MUX_9535_LED} ${REG_POLARITY_1} 0x00
     i2cset -y -r ${I2C_BUS_LED_BOARD} ${I2C_ADDR_MUX_9535_LED} ${REG_CFG_0} 0x00
     i2cset -y -r ${I2C_BUS_LED_BOARD} ${I2C_ADDR_MUX_9535_LED} ${REG_CFG_1} 0x00
@@ -423,7 +428,7 @@ function _i2c_io_exp_init {
     #zQSFP 0-31 ABS
     #command byte 4/5,  polarity is not inverted
     #command byte 6/7,  direction is input
-    i2cset -y -r ${NUM_MUX_9548_1_CHAN1} ${I2C_ADDR_MUX_9535_0} ${REG_POLARITY_0} 0x00 
+    i2cset -y -r ${NUM_MUX_9548_1_CHAN1} ${I2C_ADDR_MUX_9535_0} ${REG_POLARITY_0} 0x00
     i2cset -y -r ${NUM_MUX_9548_1_CHAN1} ${I2C_ADDR_MUX_9535_0} ${REG_POLARITY_1} 0x00
     i2cset -y -r ${NUM_MUX_9548_1_CHAN1} ${I2C_ADDR_MUX_9535_0} ${REG_CFG_0} 0xFF
     i2cset -y -r ${NUM_MUX_9548_1_CHAN1} ${I2C_ADDR_MUX_9535_0} ${REG_CFG_1} 0xFF
@@ -471,55 +476,55 @@ function _i2c_io_exp_init {
     #command byte 2/3,  output logic level is 0
     #command byte 4/5,  polarity is not inverted
     #command byte 6/7,  direction is output
-    i2cset -y -r ${NUM_MUX_9548_1_CHAN2} ${I2C_ADDR_MUX_9535_6} ${REG_OUT_0} 0xFF 
-    i2cset -y -r ${NUM_MUX_9548_1_CHAN2} ${I2C_ADDR_MUX_9535_6} ${REG_OUT_1} 0xFF 
-    i2cset -y -r ${NUM_MUX_9548_1_CHAN2} ${I2C_ADDR_MUX_9535_6} ${REG_POLARITY_0} 0x00 
-    i2cset -y -r ${NUM_MUX_9548_1_CHAN2} ${I2C_ADDR_MUX_9535_6} ${REG_POLARITY_1} 0x00 
-    i2cset -y -r ${NUM_MUX_9548_1_CHAN2} ${I2C_ADDR_MUX_9535_6} ${REG_CFG_0} 0x00 
-    i2cset -y -r ${NUM_MUX_9548_1_CHAN2} ${I2C_ADDR_MUX_9535_6} ${REG_CFG_1} 0x00 
+    i2cset -y -r ${NUM_MUX_9548_1_CHAN2} ${I2C_ADDR_MUX_9535_6} ${REG_OUT_0} 0xFF
+    i2cset -y -r ${NUM_MUX_9548_1_CHAN2} ${I2C_ADDR_MUX_9535_6} ${REG_OUT_1} 0xFF
+    i2cset -y -r ${NUM_MUX_9548_1_CHAN2} ${I2C_ADDR_MUX_9535_6} ${REG_POLARITY_0} 0x00
+    i2cset -y -r ${NUM_MUX_9548_1_CHAN2} ${I2C_ADDR_MUX_9535_6} ${REG_POLARITY_1} 0x00
+    i2cset -y -r ${NUM_MUX_9548_1_CHAN2} ${I2C_ADDR_MUX_9535_6} ${REG_CFG_0} 0x00
+    i2cset -y -r ${NUM_MUX_9548_1_CHAN2} ${I2C_ADDR_MUX_9535_6} ${REG_CFG_1} 0x00
 
-    i2cset -y -r ${NUM_MUX_9548_1_CHAN2} ${I2C_ADDR_MUX_9535_7} ${REG_OUT_0} 0xFF 
-    i2cset -y -r ${NUM_MUX_9548_1_CHAN2} ${I2C_ADDR_MUX_9535_7} ${REG_OUT_1} 0xFF 
-    i2cset -y -r ${NUM_MUX_9548_1_CHAN2} ${I2C_ADDR_MUX_9535_7} ${REG_POLARITY_0} 0x00 
-    i2cset -y -r ${NUM_MUX_9548_1_CHAN2} ${I2C_ADDR_MUX_9535_7} ${REG_POLARITY_1} 0x00 
-    i2cset -y -r ${NUM_MUX_9548_1_CHAN2} ${I2C_ADDR_MUX_9535_7} ${REG_CFG_0} 0x00 
-    i2cset -y -r ${NUM_MUX_9548_1_CHAN2} ${I2C_ADDR_MUX_9535_7} ${REG_CFG_1} 0x00    
+    i2cset -y -r ${NUM_MUX_9548_1_CHAN2} ${I2C_ADDR_MUX_9535_7} ${REG_OUT_0} 0xFF
+    i2cset -y -r ${NUM_MUX_9548_1_CHAN2} ${I2C_ADDR_MUX_9535_7} ${REG_OUT_1} 0xFF
+    i2cset -y -r ${NUM_MUX_9548_1_CHAN2} ${I2C_ADDR_MUX_9535_7} ${REG_POLARITY_0} 0x00
+    i2cset -y -r ${NUM_MUX_9548_1_CHAN2} ${I2C_ADDR_MUX_9535_7} ${REG_POLARITY_1} 0x00
+    i2cset -y -r ${NUM_MUX_9548_1_CHAN2} ${I2C_ADDR_MUX_9535_7} ${REG_CFG_0} 0x00
+    i2cset -y -r ${NUM_MUX_9548_1_CHAN2} ${I2C_ADDR_MUX_9535_7} ${REG_CFG_1} 0x00
 
     echo "set ZQSFP Mode Select"
-    #zQSFP 0-31 Mode Select 
+    #zQSFP 0-31 Mode Select
     #command byte 2/3,  output logic level is 0
     #command byte 4/5,  polarity is not inverted
     #command byte 6/7,  direction is output
-    i2cset -y -r ${NUM_MUX_9548_1_CHAN3} ${I2C_ADDR_MUX_9535_8} ${REG_OUT_0} 0x00 
-    i2cset -y -r ${NUM_MUX_9548_1_CHAN3} ${I2C_ADDR_MUX_9535_8} ${REG_OUT_1} 0x00 
-    i2cset -y -r ${NUM_MUX_9548_1_CHAN3} ${I2C_ADDR_MUX_9535_8} ${REG_POLARITY_0} 0x00 
-    i2cset -y -r ${NUM_MUX_9548_1_CHAN3} ${I2C_ADDR_MUX_9535_8} ${REG_POLARITY_1} 0x00 
-    i2cset -y -r ${NUM_MUX_9548_1_CHAN3} ${I2C_ADDR_MUX_9535_8} ${REG_CFG_0} 0x00 
-    i2cset -y -r ${NUM_MUX_9548_1_CHAN3} ${I2C_ADDR_MUX_9535_8} ${REG_CFG_1} 0x00 
+    i2cset -y -r ${NUM_MUX_9548_1_CHAN3} ${I2C_ADDR_MUX_9535_8} ${REG_OUT_0} 0x00
+    i2cset -y -r ${NUM_MUX_9548_1_CHAN3} ${I2C_ADDR_MUX_9535_8} ${REG_OUT_1} 0x00
+    i2cset -y -r ${NUM_MUX_9548_1_CHAN3} ${I2C_ADDR_MUX_9535_8} ${REG_POLARITY_0} 0x00
+    i2cset -y -r ${NUM_MUX_9548_1_CHAN3} ${I2C_ADDR_MUX_9535_8} ${REG_POLARITY_1} 0x00
+    i2cset -y -r ${NUM_MUX_9548_1_CHAN3} ${I2C_ADDR_MUX_9535_8} ${REG_CFG_0} 0x00
+    i2cset -y -r ${NUM_MUX_9548_1_CHAN3} ${I2C_ADDR_MUX_9535_8} ${REG_CFG_1} 0x00
 
-    i2cset -y -r ${NUM_MUX_9548_1_CHAN3} ${I2C_ADDR_MUX_9535_9} ${REG_OUT_0} 0x00 
-    i2cset -y -r ${NUM_MUX_9548_1_CHAN3} ${I2C_ADDR_MUX_9535_9} ${REG_OUT_1} 0x00 
-    i2cset -y -r ${NUM_MUX_9548_1_CHAN3} ${I2C_ADDR_MUX_9535_9} ${REG_POLARITY_0} 0x00 
-    i2cset -y -r ${NUM_MUX_9548_1_CHAN3} ${I2C_ADDR_MUX_9535_9} ${REG_POLARITY_1} 0x00 
-    i2cset -y -r ${NUM_MUX_9548_1_CHAN3} ${I2C_ADDR_MUX_9535_9} ${REG_CFG_0} 0x00 
-    i2cset -y -r ${NUM_MUX_9548_1_CHAN3} ${I2C_ADDR_MUX_9535_9} ${REG_CFG_1} 0x00    
+    i2cset -y -r ${NUM_MUX_9548_1_CHAN3} ${I2C_ADDR_MUX_9535_9} ${REG_OUT_0} 0x00
+    i2cset -y -r ${NUM_MUX_9548_1_CHAN3} ${I2C_ADDR_MUX_9535_9} ${REG_OUT_1} 0x00
+    i2cset -y -r ${NUM_MUX_9548_1_CHAN3} ${I2C_ADDR_MUX_9535_9} ${REG_POLARITY_0} 0x00
+    i2cset -y -r ${NUM_MUX_9548_1_CHAN3} ${I2C_ADDR_MUX_9535_9} ${REG_POLARITY_1} 0x00
+    i2cset -y -r ${NUM_MUX_9548_1_CHAN3} ${I2C_ADDR_MUX_9535_9} ${REG_CFG_0} 0x00
+    i2cset -y -r ${NUM_MUX_9548_1_CHAN3} ${I2C_ADDR_MUX_9535_9} ${REG_CFG_1} 0x00
 
     #ZQSFP ABS0_15, ABS16_31, INT0_15, INT16_31, PSU1_PWROFF, PSU2_PWROFF
     #command byte 2/3,  output logic level is 0
     #command byte 4/5,  polarity is not inverted
     #command byte 6/7,  I/O 1.0 and I/O 1.1 are output, others are input
-    i2cset -y -r ${NUM_MUX_9548_1_CHAN3} ${I2C_ADDR_MUX_9535_10} ${REG_OUT_0} 0x00 
-    i2cset -y -r ${NUM_MUX_9548_1_CHAN3} ${I2C_ADDR_MUX_9535_10} ${REG_OUT_1} 0x00 
-    i2cset -y -r ${NUM_MUX_9548_1_CHAN3} ${I2C_ADDR_MUX_9535_10} ${REG_POLARITY_0} 0x00 
-    i2cset -y -r ${NUM_MUX_9548_1_CHAN3} ${I2C_ADDR_MUX_9535_10} ${REG_POLARITY_1} 0x00 
-    i2cset -y -r ${NUM_MUX_9548_1_CHAN3} ${I2C_ADDR_MUX_9535_10} ${REG_CFG_0} 0xFF 
-    i2cset -y -r ${NUM_MUX_9548_1_CHAN3} ${I2C_ADDR_MUX_9535_10} ${REG_CFG_1} 0xFC    
+    i2cset -y -r ${NUM_MUX_9548_1_CHAN3} ${I2C_ADDR_MUX_9535_10} ${REG_OUT_0} 0x00
+    i2cset -y -r ${NUM_MUX_9548_1_CHAN3} ${I2C_ADDR_MUX_9535_10} ${REG_OUT_1} 0x00
+    i2cset -y -r ${NUM_MUX_9548_1_CHAN3} ${I2C_ADDR_MUX_9535_10} ${REG_POLARITY_0} 0x00
+    i2cset -y -r ${NUM_MUX_9548_1_CHAN3} ${I2C_ADDR_MUX_9535_10} ${REG_POLARITY_1} 0x00
+    i2cset -y -r ${NUM_MUX_9548_1_CHAN3} ${I2C_ADDR_MUX_9535_10} ${REG_CFG_0} 0xFF
+    i2cset -y -r ${NUM_MUX_9548_1_CHAN3} ${I2C_ADDR_MUX_9535_10} ${REG_CFG_1} 0xFC
 }
 
 #GPIO Init Utility Function
 function _gpio_export {
     local gpio_n=$1
-    local direction=$2 
+    local direction=$2
     local active_low=$3
     local value=$4
 
@@ -531,9 +536,9 @@ function _gpio_export {
         echo "[_gpio_init]  gpio_n(${gpio_n}) is invalid value"
         return
     fi
-  
-    #export gpio 
-    echo ${gpio_n} > ${PATH_SYS_GPIO}/export 
+
+    #export gpio
+    echo ${gpio_n} > ${PATH_SYS_GPIO}/export
 
     #set gpio direction
     echo ${direction} > ${PATH_SYS_GPIO}/gpio${gpio_n}/direction
@@ -541,7 +546,7 @@ function _gpio_export {
     #set gpio active_low
     echo ${active_low} > ${PATH_SYS_GPIO}/gpio${gpio_n}/active_low
 
-    #set value 
+    #set value
     if [ ! -z "${value}" ]; then
         echo ${value} > ${PATH_SYS_GPIO}/gpio${gpio_n}/value
     fi
@@ -551,15 +556,15 @@ function _gpio_export {
 function _set_gpiomap {
     local gpio_n=$1
     local alias=$2
-    
+
     #create gpiomap dir if not exist
     mkdir -p $PATH_GPIOMAP
 
     #check gpio_n exists in sysfs
     if [ ! -L ${PATH_SYS_GPIO}/gpio${gpio_n} ]; then
         echo "${PATH_SYS_GPIO}/gpio${gpio_n} does not exist."
-        return 
-    fi 
+        return
+    fi
 
     #create or update link
     ln -sf ${PATH_SYS_GPIO}/gpio${gpio_n} ${PATH_GPIOMAP}/${alias}
@@ -580,7 +585,7 @@ function _i2c_gpio_init {
     echo "pca9535 ${I2C_ADDR_MUX_9535_0}" > ${PATH_SYS_I2C_DEVICES}/i2c-${NUM_MUX_9548_1_CHAN1}/new_device
     for i in {224..255}
     do
-        _gpio_export ${i} ${DIR_IN} ${ACTIVE_LOW} 
+        _gpio_export ${i} ${DIR_IN} ${ACTIVE_LOW}
         _set_gpiomap ${i} "QSFP$(( i - 223 ))_ABS"
     done
 
@@ -589,7 +594,7 @@ function _i2c_gpio_init {
     echo "pca9535 ${I2C_ADDR_MUX_9535_2}" > ${PATH_SYS_I2C_DEVICES}/i2c-${NUM_MUX_9548_1_CHAN1}/new_device
     for i in {192..223}
     do
-        _gpio_export ${i} ${DIR_IN} ${ACTIVE_LOW} 
+        _gpio_export ${i} ${DIR_IN} ${ACTIVE_LOW}
         _set_gpiomap ${i} "QSFP$(( i - 191 ))_INT"
     done
 
@@ -598,7 +603,7 @@ function _i2c_gpio_init {
     echo "pca9535 ${I2C_ADDR_MUX_9535_4}" > ${PATH_SYS_I2C_DEVICES}/i2c-${NUM_MUX_9548_1_CHAN2}/new_device
     for i in {160..191}
     do
-        _gpio_export ${i} ${DIR_OUT} ${ACTIVE_HIGH} 
+        _gpio_export ${i} ${DIR_OUT} ${ACTIVE_HIGH}
         _set_gpiomap ${i} "QSFP$(( i - 159 ))_LPMODE"
     done
 
@@ -607,7 +612,7 @@ function _i2c_gpio_init {
     echo "pca9535 ${I2C_ADDR_MUX_9535_6}" > ${PATH_SYS_I2C_DEVICES}/i2c-${NUM_MUX_9548_1_CHAN2}/new_device
     for i in {128..159}
     do
-        _gpio_export ${i} ${DIR_OUT} ${ACTIVE_LOW} 
+        _gpio_export ${i} ${DIR_OUT} ${ACTIVE_LOW}
         _set_gpiomap ${i} "QSFP$(( i - 127 ))_RST"
         #Reset QSFP
         echo "${ACTIVE_LOW}" > ${PATH_SYS_GPIO}/gpio${i}/value
@@ -619,7 +624,7 @@ function _i2c_gpio_init {
     echo "pca9535 ${I2C_ADDR_MUX_9535_8}" > ${PATH_SYS_I2C_DEVICES}/i2c-${NUM_MUX_9548_1_CHAN3}/new_device
     for i in {96..127}
     do
-        _gpio_export ${i} ${DIR_OUT} ${ACTIVE_LOW} 
+        _gpio_export ${i} ${DIR_OUT} ${ACTIVE_LOW}
         _set_gpiomap ${i} "QSFP$(( i - 95 ))_MODSEL"
     done
 }
@@ -642,7 +647,7 @@ function _i2c_led_fan_tray_status_set {
     #check W83795 exists in hwmon2
     if [ ! -e "${PATH_HWMON_W83795_DEVICE}" ]; then
         echo "FAIL, W83795 not found in path ${PATH_HWMON_W83795_DEVICE}"
-        return 
+        return
     fi
     #FAN Status get
     FAN1_ALARM=`cat ${PATH_HWMON_W83795_DEVICE}/device/fan1_alarm`
@@ -654,7 +659,7 @@ function _i2c_led_fan_tray_status_set {
     FAN7_ALARM=`cat ${PATH_HWMON_W83795_DEVICE}/device/fan7_alarm`
     FAN8_ALARM=`cat ${PATH_HWMON_W83795_DEVICE}/device/fan8_alarm`
 
-	FAN_TRAY=1
+        FAN_TRAY=1
     if [ "${FAN1_ALARM}" == "0" ] && [ "${FAN2_ALARM}" == "0" ]; then
         COLOR_LED="green"
         ONOFF_LED="on"
@@ -675,7 +680,7 @@ function _i2c_led_fan_tray_status_set {
         _i2c_fan_tray_led
     fi
 
-	FAN_TRAY=2
+        FAN_TRAY=2
     if [ "${FAN3_ALARM}" == "0" ] && [ "${FAN4_ALARM}" == "0" ]; then
         COLOR_LED="green"
         ONOFF_LED="on"
@@ -696,7 +701,7 @@ function _i2c_led_fan_tray_status_set {
         _i2c_fan_tray_led
     fi
 
-	FAN_TRAY=3
+        FAN_TRAY=3
     if [ "${FAN5_ALARM}" == "0" ] && [ "${FAN6_ALARM}" == "0" ]; then
         COLOR_LED="green"
         ONOFF_LED="on"
@@ -717,7 +722,7 @@ function _i2c_led_fan_tray_status_set {
         _i2c_fan_tray_led
     fi
 
-	FAN_TRAY=4
+        FAN_TRAY=4
     if [ "${FAN7_ALARM}" == "0" ] && [ "${FAN8_ALARM}" == "0" ]; then
         COLOR_LED="green"
         ONOFF_LED="on"
@@ -745,7 +750,7 @@ function _i2c_led_fan_tray_test {
 
     for i in {1..4}
     do
-	    FAN_TRAY=$i
+            FAN_TRAY=$i
         COLOR_LED="green"
         ONOFF_LED="on"
         echo "${COLOR_LED} ${ONOFF_LED}"
@@ -772,9 +777,9 @@ function _i2c_led_fan_status_set {
     echo "FAN Status Setup"
 
     #check W83795 exists in hwmon2
-    if [ ! -e "${PATH_HWMON_W83795_DEVICE}" ]; then 
+    if [ ! -e "${PATH_HWMON_W83795_DEVICE}" ]; then
         echo "FAIL, W83795 not found in path ${PATH_HWMON_W83795_DEVICE}"
-        return 
+        return
     fi
 
     #PSU Status set
@@ -1128,21 +1133,31 @@ function _i2c_qsfp_type_get {
     echo "transceiver=$transceiver"
 }
 
+#Init PSU Kernel Module
+function _i2c_psu_init {
+    echo "========================================================="
+    echo "# Description: I2C PSU Init"
+    echo "========================================================="
+    modprobe ingrasys_s8810_32q_psu
+
+    echo "psu1 ${I2C_ADDR_PSU_EEPROM}" > ${PATH_SYS_I2C_DEVICES}/i2c-${I2C_BUS_PSU1_EEPROM}/new_device
+    echo "psu2 ${I2C_ADDR_PSU_EEPROM}" > ${PATH_SYS_I2C_DEVICES}/i2c-${I2C_BUS_PSU2_EEPROM}/new_device
+}
 
 #Get PSU EEPROM Information
 function _i2c_psu_eeprom_get {
+    local eeprom_psu1=""
+    local eeprom_psu2=""
+
     echo "========================================================="
     echo "# Description: I2C PSU EEPROM Get..."
     echo "========================================================="
 
-    ## PUS 1 EEPROM
-    echo "PSU1 EEPROM"
-    i2cdump -y ${I2C_BUS_PSU1_EEPROM} ${I2C_ADDR_PSU_EEPROM} b
-    ## PUS 2 EEPROM
-    echo "PSU2 EEPROM"
-    i2cdump -y ${I2C_BUS_PSU2_EEPROM} ${I2C_ADDR_PSU_EEPROM} b
+    eeprom_psu1="${PATH_SYSFS_PSU1}/psu_eeprom"
+    cat ${eeprom_psu1} | hexdump -C
 
-    echo "done..."
+    eeprom_psu2="${PATH_SYSFS_PSU2}/psu_eeprom"
+    cat ${eeprom_psu2} | hexdump -C
 }
 
 #Get MotherBoard EEPROM Information
@@ -1273,7 +1288,7 @@ function _i2c_set_led {
         exit ${FALSE}
     fi
 
-    i2cset -m $mask -y -r ${I2C_BUS_LED_BOARD} ${I2C_ADDR_MUX_9535_LED} ${REG_OUT_0} $value 
+    i2cset -m $mask -y -r ${I2C_BUS_LED_BOARD} ${I2C_ADDR_MUX_9535_LED} ${REG_OUT_0} $value
 }
 
 #Reset all system leds
@@ -1319,14 +1334,24 @@ function _i2c_cpld_version {
 
 #Get PSU Status
 function _i2c_psu_status {
-    local reg_psu_good=0x02
-    local reg_psu_present=0x03
-    psuPresent=`i2cget -y ${NUM_I801_DEVICE} ${I2C_ADDR_CPLD} ${reg_psu_present}`
-    psu1Exist=$(($((($psuPresent) & 0x01))?0:1))
-    psu2Exist=$(($((($psuPresent) & 0x02))?0:1))
-    psuPwGood=`i2cget -y ${NUM_I801_DEVICE} ${I2C_ADDR_CPLD} ${reg_psu_good}`
-    psu1PwGood=$(($((($psuPwGood) >> 3 & 0x01))?1:0))
-    psu2PwGood=$(($((($psuPwGood) >> 3 & 0x02))?1:0))
+    local psu_abs=""
+
+    psu1PwGood=`cat ${PATH_SYSFS_PSU1}/psu_pg`
+    psu_abs=`cat ${PATH_SYSFS_PSU1}/psu_abs`
+    if [ "$psu_abs" == "0" ]; then
+        psu1Exist=1
+    else
+        psu1Exist=0
+    fi
+
+    psu2PwGood=`cat ${PATH_SYSFS_PSU2}/psu_pg`
+    psu_abs=`cat ${PATH_SYSFS_PSU2}/psu_abs`
+    if [ "$psu_abs" == "0" ]; then
+        psu2Exist=1
+    else
+        psu2Exist=0
+    fi
+
     printf "PSU1 Exist:%x PSU1 PW Good:%d\n" $psu1Exist $psu1PwGood
     printf "PSU2 Exist:%d PSU2 PW Good:%d\n" $psu2Exist $psu2PwGood
 }
@@ -1407,7 +1432,7 @@ function _main {
         _i2c_mb_eeprom_get
         _i2c_board_type_get
         _i2c_cpld_version
-        _i2c_psu_status        
+        _i2c_psu_status
     else
         echo "Invalid Parameters, Exit!!!"
         _help
