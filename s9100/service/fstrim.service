@@ -1,0 +1,9 @@
+[Unit]
+Description=Discard unused blocks
+
+[Service]
+Type=oneshot
+ExecStart=/sbin/fstrim --all -v
+StandardOutput=syslog
+StandardError=syslog
+SyslogIdentifier=fstrim

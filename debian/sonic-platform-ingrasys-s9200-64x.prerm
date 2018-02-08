@@ -2,6 +2,7 @@
 if [ -d /run/systemd/system ]; then
     deb-systemd-invoke stop s9200-64x-monitor.service >/dev/null
     deb-systemd-invoke stop qsfp-monitor.service >/dev/null
+    deb-systemd-invoke stop fstrim.timer >/dev/null
 fi
 # End automatically added section
 # Automatically added by dh_installinit
@@ -10,6 +11,9 @@ if [ -x "/etc/init.d/s9200-64x-monitor" ]; then
 fi
 if [ -x "/etc/init.d/qsfp-monitor" ]; then
     invoke-rc.d qsfp-monitor stop || exit $?
+fi
+if [ -x "/etc/init.d/fstrim" ]; then
+    invoke-rc.d fstrim stop || exit $?
 fi
 # Driver deinit
 /usr/sbin/i2c_utils.sh i2c_deinit

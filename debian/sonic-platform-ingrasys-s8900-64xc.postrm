@@ -7,6 +7,7 @@ if [ -d /run/systemd/system ]; then
 if [ "$1" = "purge" ] ; then
     update-rc.d s8900-64xc-monitor remove >/dev/null
     update-rc.d qsfp-monitor remove >/dev/null
+    update-rc.d fstrim remove >/dev/null
 fi
 
 
@@ -21,6 +22,7 @@ if [ "$1" = "remove" ]; then
     if [ -x "/usr/bin/deb-systemd-helper" ]; then
         deb-systemd-helper mask s8900-64xc-monitor.service >/dev/null
         deb-systemd-helper mask qsfp-monitor.service >/dev/null
+        deb-systemd-helper mask fstrim.timer >/dev/null
     fi
 fi
 
@@ -30,6 +32,8 @@ if [ "$1" = "purge" ]; then
         deb-systemd-helper unmask s8900-64xc-monitor.service >/dev/null
         deb-systemd-helper purge qsfp-monitor.service >/dev/null
         deb-systemd-helper unmask qsfp-monitor.service >/dev/null
+        deb-systemd-helper purge fstrim.timer >/dev/null
+        deb-systemd-helper unmask fstrim.timer >/dev/null
     fi
 fi
 # Generate kernel modules.dep and map files for remove eeprom_mb.
