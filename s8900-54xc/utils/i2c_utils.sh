@@ -227,6 +227,8 @@ function _i2c_init {
     _i2c_fan_init
     _i2c_io_exp_init
     _i2c_gpio_init
+    _i2c_cpld_init
+    _i2c_psu_eeprom_init
     _i2c_led_psu_status_set
     _i2c_led_fan_status_set
     COLOR_LED="green"
@@ -756,6 +758,20 @@ function _i2c_gpio_deinit {
     echo "0x22" > /sys/bus/i2c/devices/i2c-${NUM_MUX2_CHAN0_DEVICE}/delete_device
 }
 
+#I2C CPLD init
+function _i2c_cpld_init {
+    echo "========================================================="
+    echo "# Description: I2C CPLD Init..."
+    echo "========================================================="
+
+    ## modprobe i2c_cpld
+    modprobe i2c_cpld
+    ## Add CPLD device
+    echo "i2c_cpld 0x33" > ${PATH_SYS_I2C_DEVICES}/i2c-${NUM_I801_DEVICE}/new_device
+
+    echo "done..."
+}
+
 #Set FAN Tray LED
 function _i2c_led_fan_tray_status_set {
     echo "FAN Tray Status Setup"
@@ -1142,7 +1158,23 @@ function _i2c_qsfp_eeprom_get {
         _help
         exit ${FALSE}
     fi
+}
 
+#PSU EEPROM init
+function _i2c_psu_eeprom_init {
+    echo "========================================================="
+    echo "# Description: I2C PSU EEPROM Init..."
+    echo "========================================================="
+
+    ## modprobe eeprom
+    modprobe eeprom
+    ## PUS(0) EEPROM
+    echo "eeprom 0x50" > ${PATH_SYS_I2C_DEVICES}/i2c-${NUM_MUX2_CHAN6_DEVICE}/new_device
+
+    ## PUS(1) EEPROM
+    echo "eeprom 0x50" > ${PATH_SYS_I2C_DEVICES}/i2c-${NUM_MUX2_CHAN7_DEVICE}/new_device
+
+    echo "done..."
 }
 
 #Get PSU EEPROM Information
@@ -1154,16 +1186,10 @@ function _i2c_psu_eeprom_get {
     ## modprobe eeprom
     modprobe eeprom
     ## PUS(0) EEPROM
-    echo "eeprom 0x50" > ${PATH_SYS_I2C_DEVICES}/i2c-${NUM_MUX2_CHAN6_DEVICE}/new_device
-    dd if=${PATH_SYS_I2C_DEVICES}/${NUM_MUX2_CHAN6_DEVICE}-0050/eeprom  of=psu0.rom
-    echo "0x50" > ${PATH_SYS_I2C_DEVICES}/i2c-${NUM_MUX2_CHAN6_DEVICE}/delete_device
-    cat psu0.rom | hexdump -C
+    cat ${PATH_SYS_I2C_DEVICES}/${NUM_MUX2_CHAN6_DEVICE}-0050/eeprom | hexdump -C
 
     ## PUS(1) EEPROM
-    echo "eeprom 0x50" > ${PATH_SYS_I2C_DEVICES}/i2c-${NUM_MUX2_CHAN7_DEVICE}/new_device
-    dd if=${PATH_SYS_I2C_DEVICES}/${NUM_MUX2_CHAN7_DEVICE}-0050/eeprom  of=psu1.rom
-    echo "0x50" > ${PATH_SYS_I2C_DEVICES}/i2c-${NUM_MUX2_CHAN7_DEVICE}/delete_device
-    cat psu1.rom | hexdump -C
+    cat ${PATH_SYS_I2C_DEVICES}/${NUM_MUX2_CHAN7_DEVICE}-0050/eeprom | hexdump -C
 
     echo "done..."
 }
@@ -1322,7 +1348,7 @@ function _i2c_psu1_led {
 
 #Get Board Version and Type
 function _i2c_board_type_get {
-    boardType=`i2cget -y ${NUM_I801_DEVICE} 0x33 0x00`
+    boardType=`cat ${PATH_SYS_I2C_DEVICES}/0-0033/cpld_board_type`
     boardBuildRev=$((($boardType) & 0x03))
     boardHwRev=$((($boardType) >> 2 & 0x03))
     boardId=$((($boardType) >> 4))
@@ -1332,7 +1358,7 @@ function _i2c_board_type_get {
 
 #Get CPLD Version
 function _i2c_cpld_version {
-    cpldRev=`i2cget -y ${NUM_I801_DEVICE} 0x33 0x01`
+    cpldRev=`cat ${PATH_SYS_I2C_DEVICES}/0-0033/cpld_version`
     cpldRelease=$((($cpldRev) >> 6 & 0x01))
     cpldVersion=$((($cpldRev) & 0x3F))
     printf "CPLD is %s version(0:RD 1:Release), Revision is 0x%02x\n" $cpldRelease $cpldVersion
@@ -1341,58 +1367,26 @@ function _i2c_cpld_version {
 
 #Get PSU Status
 function _i2c_psu_status {
-    psuPresent=`i2cget -y ${NUM_I801_DEVICE} 0x33 0x03`
+    psuPresent=`cat ${PATH_SYS_I2C_DEVICES}/0-0033/cpld_pw_abs`
     psu1Exist=$(($((($psuPresent) & 0x01))?0:1))
     psu2Exist=$(($((($psuPresent) & 0x02))?0:1))
-    psuPwGood=`i2cget -y ${NUM_I801_DEVICE} 0x33 0x02`
+    psuPwGood=`cat ${PATH_SYS_I2C_DEVICES}/0-0033/cpld_pw_good`
     psu1PwGood=$(($((($psuPwGood) >> 3 & 0x01))?1:0))
     psu2PwGood=$(($((($psuPwGood) >> 3 & 0x02))?1:0))
-    printf "PSU1 Exist:%x PSU1 PW Good:%d\n" $psu1Exist $psu1PwGood
+    printf "PSU1 Exist:%d PSU1 PW Good:%d\n" $psu1Exist $psu1PwGood
     printf "PSU2 Exist:%d PSU2 PW Good:%d\n" $psu2Exist $psu2PwGood
 }
 
 #Get Front Sensor Temperature
 function _i2c_front_temp {
     #Front MAC
-    i2cset -y -r ${NUM_I801_DEVICE} 0x2F 0x00 0x80
-    Data1=`i2cget -y ${NUM_I801_DEVICE} 0x2F 0x21`
-    Data2=`i2cget -y ${NUM_I801_DEVICE} 0x2F 0x3C`
-    isPositive=$(($((($Data1) & 0x80))?1:0))
-    printf "Front MAC Temperature: "
-    if [ "$isPositive" = "1" ]
-    then
-        cTemp=$(( $(( $Data1 << 2 )) + $(( $(( $Data2 & 0xC0 >> 6 )) ^ 0x3FF )) + 1 ))
-        dTemp=$(( $(( $cTemp & 0x03 )) * 25 ))
-        intTemp=$(( $cTemp >> 2 ))
-
-        printf "%c%d.%02d oC\n" "-" $intTemp $dTemp
-    else
-        dTemp=$(( $(( $Data2 & 0xC0 >> 6 )) * 25 ))
-        intTemp=$Data1
-        printf "%c%d.%02d oC\n" "+" $intTemp $dTemp
-    fi
+    sensors | grep 'Front MAC Temp' -A 1
 }
 
 #Get Rear Sensor Temperature
 function _i2c_rear_temp {
     #Rear MAC
-    i2cset -y -r ${NUM_I801_DEVICE} 0x2F 0x00 0x80
-    Data1=`i2cget -y ${NUM_I801_DEVICE} 0x2F 0x22`
-    Data2=`i2cget -y ${NUM_I801_DEVICE} 0x2F 0x3C`
-    isPositive=$(($((($Data1) & 0x80))?1:0))
-    printf "Rear MAC Temperature: "
-    if [ "$isPositive" = "1" ]
-    then
-        cTemp=$(( $(( $Data1 << 2 )) + $(( $(( $Data2 & 0xC0 >> 6 )) ^ 0x3FF )) + 1 ))
-        dTemp=$(( $(( $cTemp & 0x03 )) * 25 ))
-        intTemp=$(( $cTemp >> 2 ))
-
-        printf "%c%d.%02d oC\n" "-" $intTemp $dTemp
-    else
-        dTemp=$(( $(( $Data2 & 0xC0 >> 6 )) * 25 ))
-        intTemp=$Data1
-        printf "%c%d.%02d oC\n" "+" $intTemp $dTemp
-    fi
+    sensors | grep 'Rear MAC Temp' -A 1
 }
 
 #Increase read socket buffer for CoPP Test

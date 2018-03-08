@@ -730,7 +730,7 @@ function _i2c_gpio_deinit {
 #I2C CPLD init
 function _i2c_cpld_init {
     echo "========================================================="
-    echo "# Description: I2C PSU EEPROM Init..."
+    echo "# Description: I2C CPLD Init..."
     echo "========================================================="
 
     ## modprobe i2c_cpld

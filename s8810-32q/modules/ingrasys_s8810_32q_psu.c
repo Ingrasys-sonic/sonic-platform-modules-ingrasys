@@ -21,8 +21,7 @@
 #include <linux/module.h>
 #include <linux/jiffies.h>
 #include <linux/i2c.h>
-#include <linux/hwmon.h>
-#include <linux/hwmon-sysfs.h>
+#include <linux/device.h>
 #include <linux/err.h>
 #include <linux/mutex.h>
 #include <linux/sysfs.h>
@@ -67,7 +66,6 @@ static struct i2c_client cpld_client;
 
 /* Driver Private Data */
 struct s8810_psu_data {
-    struct device   *hwmon_dev;
     struct mutex    lock;
     char            valid;           /* !=0 if registers are valid */
     unsigned long   last_updated;    /* In jiffies */
@@ -75,12 +73,6 @@ struct s8810_psu_data {
     char eeprom[EEPROM_SZ];          /* psu eeprom data */
     char psuABS;                     /* PSU absent */
     char psuPG;                      /* PSU power good */
-};
-
-enum s8810_psu_sysfs_attributes {
-    PSU_POWER_GOOD,
-    PSU_ABSENT,
-    PSU_EEPROM
 };
 
 enum psu_index 
@@ -129,14 +121,14 @@ show_psu_abs(struct device *dev,
 /* 
  * sysfs attributes for psu 
  */
-static SENSOR_DEVICE_ATTR(psu_pg, S_IRUGO, show_psu_pg, NULL, PSU_POWER_GOOD);
-static SENSOR_DEVICE_ATTR(psu_abs, S_IRUGO, show_psu_abs, NULL, PSU_ABSENT);
-static SENSOR_DEVICE_ATTR(psu_eeprom, S_IRUGO, show_psu_eeprom, NULL, PSU_EEPROM);
+static DEVICE_ATTR(psu_pg, S_IRUGO, show_psu_pg, NULL);
+static DEVICE_ATTR(psu_abs, S_IRUGO, show_psu_abs, NULL);
+static DEVICE_ATTR(psu_eeprom, S_IRUGO, show_psu_eeprom, NULL);
 
 static struct attribute *s8810_psu_attributes[] = {
-    &sensor_dev_attr_psu_pg.dev_attr.attr,
-    &sensor_dev_attr_psu_abs.dev_attr.attr,
-    &sensor_dev_attr_psu_eeprom.dev_attr.attr,
+    &dev_attr_psu_pg.attr,
+    &dev_attr_psu_abs.attr,
+    &dev_attr_psu_eeprom.attr,
     NULL
 };
 
@@ -219,15 +211,6 @@ s8810_psu_probe(struct i2c_client *client,
     if (status) {
         goto exit_free;
     }
-
-    data->hwmon_dev = hwmon_device_register(&client->dev);
-    if (IS_ERR(data->hwmon_dev)) {
-        status = PTR_ERR(data->hwmon_dev);
-        goto exit_remove;
-    }
-
-    dev_info(&client->dev, "%s: psu '%s'\n",
-    dev_name(data->hwmon_dev), client->name);
     
     return 0;
 
@@ -245,7 +228,6 @@ s8810_psu_remove(struct i2c_client *client)
 {
     struct s8810_psu_data *data = i2c_get_clientdata(client);
 
-    hwmon_device_unregister(data->hwmon_dev);
     sysfs_remove_group(&client->dev.kobj, &s8810_psu_group);
     kfree(data);
     
@@ -384,7 +366,6 @@ static const struct i2c_device_id s8810_psu_id[] = {
 MODULE_DEVICE_TABLE(i2c, s8810_psu_id);
 
 static struct i2c_driver s8810_psu_driver = {
-    .class        = I2C_CLASS_HWMON,
     .driver = {
         .name     = DRIVER_NAME,
     },

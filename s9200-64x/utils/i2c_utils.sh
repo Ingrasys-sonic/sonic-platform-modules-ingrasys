@@ -178,6 +178,7 @@ PATH_LM75_MAC="${PATH_SYS_I2C_DEVICES}/i2c-${I2C_BUS_LM75_MAC}"
 PATH_LM75_FRONT="${PATH_SYS_I2C_DEVICES}/i2c-${I2C_BUS_LM75_FRONT}"
 PATH_LM75_REAR="${PATH_SYS_I2C_DEVICES}/i2c-${I2C_BUS_LM75_REAR}"
 PATH_CPU_TMP75="${PATH_SYS_I2C_DEVICES}/i2c-${NUM_I801_DEVICE}"
+PATH_BMC_TMP75="${PATH_SYS_I2C_DEVICES}/i2c-${I2C_BUS_HWM}"
 PATH_PSU1_EERPOM=${PATH_SYS_I2C_DEVICES}/i2c-${I2C_BUS_PSU1_EEPROM}
 PATH_PSU2_EEPROM=${PATH_SYS_I2C_DEVICES}/i2c-${I2C_BUS_PSU2_EEPROM}
 PATH_10GMUX=${PATH_SYS_I2C_DEVICES}/i2c-${I2C_BUS_10GMUX}
@@ -473,11 +474,11 @@ function _i2c_init {
     _i2c_mb_eeprom_init "new"
     _i2c_cpu_eeprom_init "new"
     modprobe eeprom
-    _i2c_psu_init
     modprobe gpio-pca953x
     _i2c_sensors_init
     _i2c_fan_init
     _i2c_io_exp_init
+    _i2c_psu_init
     _i2c_qsfp_eeprom_init "new"
     _i2c_led_psu_status_set
     _i2c_led_fan_status_set
@@ -774,7 +775,7 @@ function _i2c_sensors_init {
     # BMC board thermal
     dev_path="${PATH_SYS_I2C_DEVICES}/${NUM_I801_DEVICE}-$(printf "%04x" ${I2C_ADDR_TMP75_BB})"
     if ! [ -L ${dev_path} ]; then
-        echo "tmp75 ${I2C_ADDR_TMP75_BB}" > ${PATH_I801_DEVICE}/new_device
+        echo "tmp75 ${I2C_ADDR_TMP75_BB}" > ${PATH_BMC_TMP75}/new_device
     else
         echo "${dev_path} already exist"
     fi
